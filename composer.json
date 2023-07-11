@@ -1,0 +1,55 @@
+{
+    "name": "erickcomp/laravel-breadcrumbs-attributes",
+    "description": "Provides breadcrumbs to controller methods using PHP Attributes",
+    "keywords": [
+        "erickcomp",
+        "breadcrumb",
+        "attribute",
+        "laravel-breadcrumbs-attributes"
+    ],
+    "homepage": "https://github.com/erickcomp/laravel-breadcrumbs-attributes",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Erick de Azevedo Lima",
+            "email": "ericklima.comp@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "illuminate/contracts": "^8.70|^9.0|^10.0",
+        "nesbot/carbon": "^2.63"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^6.25|^7.0|^8.0",
+        "phpunit/phpunit": "^9.5.10"
+    },
+    "autoload": {
+        "psr-4": {
+            "ErickComp\\BreadcrumbAttributes\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ErickComp\\BreadcrumbAttributes\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "psalm": "vendor/bin/psalm",
+        "test": "vendor/bin/phpunit --colors=always",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "ErickComp\\BreadcrumbAttributes\\Providers\\BreadcrumbsAttributeServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
