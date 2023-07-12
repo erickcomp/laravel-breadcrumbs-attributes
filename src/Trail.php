@@ -54,24 +54,28 @@ class Trail
     protected function addCrumbToTrail(Crumb $crumbItem)
     {
         $urlParams = $this->router->getCurrentRoute()->parameters();
-        $controllerActionParams = $this->controllerActionRoutesAndParamsResolver->resolveMethodDependencies(
+        $controllerActionReflectionMethod = $crumbItem->reflControllerAction->get();
+        
+        $controllerActionParamsWithUrlParamsNames = $this->controllerActionRoutesAndParamsResolver->resolveMethodDependencies(
             $urlParams,
-            $crumbItem->reflControllerAction->get()
+            $controllerActionReflectionMethod
         );
+
+        $controllerActionParams = [];
+        
+        foreach($controllerActionReflectionMethod->getParameters() as $controllerActionParam) {
+            $controllerActionParams[$controllerActionParam->getName()] = \array_shift($controllerActionParamsWithUrlParamsNames);
+        }
 
         $breadcrumbAttr = $crumbItem->crumbData;
 
         $this->addAuxCrumbToTrail($breadcrumbAttr->auxCrumbBefore, $controllerActionParams);
 
-
-
         $crumbLabel = $breadcrumbAttr->label instanceof LabelResolver
             ? $this->resolveLabelResolver($breadcrumbAttr->label, $controllerActionParams)
             : (string) $breadcrumbAttr->label;
 
-        $crumbUrl = $breadcrumbAttr->routeName
-            ? $this->controllerActionRoutesAndParamsResolver->resolveRouteUrlWithCurrentRouteParams($breadcrumbAttr->routeName)
-            : $this->controllerActionRoutesAndParamsResolver->resolveControllerActionUrlWithCurrentRouteParams([
+        $crumbUrl = $this->controllerActionRoutesAndParamsResolver->resolveControllerActionUrlWithCurrentRouteParams([
                 $crumbItem->reflControllerAction->class,
                 $crumbItem->reflControllerAction->method
             ]);

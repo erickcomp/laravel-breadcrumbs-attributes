@@ -11,6 +11,7 @@ class ActionParamMethod implements CrumbResolver
         public string|\Stringable $paramMethodName,
         public array $paramMethodPositionalArgs = [],
         public array $paramMethodNamedArgs = [],
+        public string|\Stringable|null $routeName = null
     ) {
         if (\str_starts_with($paramName, '$')) {
             $this->paramName = \substr($paramName, 1);

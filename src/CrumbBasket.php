@@ -19,12 +19,12 @@ use ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb;
 
 class CrumbBasket
 {
-    public const BREADCRUMBS_CONFIG_KEY = 'erickcomp-breadcrumbs-attributes';
+    public const BREADCRUMBS_CONFIG_KEY = 'erickcomp-laravel-breadcrumbs-attributes';
     public const BREADCRUMBS_CONTROLLERS_DIRS_CONFIG_KEY = 'controller_directories';
     public const BREADCRUMBS_CONTROLLERS_DIRS_FULL_CONFIG_KEY = self::BREADCRUMBS_CONFIG_KEY . '.' . self::BREADCRUMBS_CONTROLLERS_DIRS_CONFIG_KEY;
     public const BREADCRUMBS_DEFAULT_CONFIG_FILE = __DIR__ . \DIRECTORY_SEPARATOR . 'config' . \DIRECTORY_SEPARATOR . self::BREADCRUMBS_CONFIG_KEY . '.php';
-    public const BREADCRUMBS_CACHE_FILE_KEY = 'ERICKCOMP_BREADCRUMBS_CACHE';
-    public const BREADCRUMBS_CACHE_FILE_DEFAULT = 'cache/erickcomp_breadcrumbs.php';
+    public const BREADCRUMBS_CACHE_FILE_KEY = 'ERICKCOMP_LARAVEL_BREADCRUMBS_ATTRIBUTES_CACHE';
+    public const BREADCRUMBS_CACHE_FILE_DEFAULT = 'cache/erickcomp-laravel-breadcrumbs-attributes';
     private const SPATIE_CONTROLLER_DIRECTORIES_CONFIG_KEY = 'route-attributes.directories';
 
     /** @var array<string, Crumb> $crumbs */
@@ -148,7 +148,7 @@ class CrumbBasket
         return $this->application->getCachedErickCompBreadcrumbsPath();
     }
 
-    protected function breadcrumbsAreCached(): bool
+    public function breadcrumbsAreCached(): bool
     {
         return $this->fileSystem->exists($this->getCacheFilePath());
     }
@@ -164,7 +164,7 @@ class CrumbBasket
             return [];
         }
 
-        return unserialize($this->fileSystem->getRequire($this->getCacheFilePath()));
+        return unserialize($this->fileSystem->get($this->getCacheFilePath()));
     }
 
     protected function fullQualifiedClassNameFromFile(SplFileInfo $file): ?string
@@ -238,12 +238,6 @@ class CrumbBasket
 
                 $crumbAttrInstance->name = $spatieRoute->name;
             }
-
-            // If routeName is null, we'll let the trail be resolved by the controller action
-
-            // if ($crumbAttrInstance->routeName === null) {
-            //     $crumbAttrInstance->routeName = $crumbAttrInstance->name;
-            // }
 
             if (\array_key_exists($crumbAttrInstance->name, $this->crumbs)) {
                 $currentCrumbFile = $reflMethod->getFileName();

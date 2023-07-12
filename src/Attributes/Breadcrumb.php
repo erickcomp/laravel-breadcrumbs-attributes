@@ -13,8 +13,8 @@ class Breadcrumb
         public string|\Stringable|null $parent = null,
         public string|\Stringable|null $name = null,
         public string|\Stringable|LabelResolver|null $auxCrumbBefore = null,
-        public string|\Stringable|LabelResolver|null $auxCrumbAfter = null,
-        public string|\Stringable|null $routeName = null
+        public string|\Stringable|LabelResolver|null $auxCrumbAfter = null//,
+        //public string|\Stringable|null $routeName = null
     ) {
     }
 }

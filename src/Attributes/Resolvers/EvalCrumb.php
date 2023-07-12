@@ -13,8 +13,10 @@ class EvalCrumb implements CrumbResolver
 
     public function resolveLabel(array $actionParams): string
     {
-        $evalFn = fn(): string => extract($actionParams) && eval((string) $this->code);
+        // $evalFn = fn(): string => extract($actionParams) && eval((string) $this->code);
 
-        return $evalFn();
+        // return $evalFn();
+        extract($actionParams);
+        return eval($this->code);
     }
 }
