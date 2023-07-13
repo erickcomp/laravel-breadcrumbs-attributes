@@ -21,6 +21,9 @@
         "illuminate/contracts": "^8.70|^9.0|^10.0",
         "nesbot/carbon": "^2.63"
     },
+    "suggest": {
+        "spatie/laravel-route-attributes": "Allows route name binding (route name is used as the Breadcrumb name if you don't provide one)"
+    },
     "require-dev": {
         "orchestra/testbench": "^6.25|^7.0|^8.0",
         "phpunit/phpunit": "^9.5.10"

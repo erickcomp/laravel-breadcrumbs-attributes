@@ -24,7 +24,7 @@ class Trail
         return $this->crumbBasket;
     }
 
-    /** @return Crumb[] */
+    /** @return ProcessedCrumb[] */
     public function getCrumbs(bool $forceRebuild = false): array
     {
         if (!isset($this->crumbsTrail) || $forceRebuild) {
@@ -37,12 +37,6 @@ class Trail
     protected function build()
     {
         $this->crumbsTrail = [];
-        // $routeName = $this->router->getCurrentRoute()->getName();
-
-        // if (!$routeName) {
-        //     throw new \LogicException("Cannot generate breadcrumb for an unnamed route (uri: {$this->router->getCurrentRoute()->uri()}).");
-        // }
-
         /** @var Crumb[] */
         $crumbsAttrs = $this->crumbBasket->getCrumbsAttributesTrailForRoute($this->router->getCurrentRoute());
 
@@ -55,15 +49,15 @@ class Trail
     {
         $urlParams = $this->router->getCurrentRoute()->parameters();
         $controllerActionReflectionMethod = $crumbItem->reflControllerAction->get();
-        
+
         $controllerActionParamsWithUrlParamsNames = $this->controllerActionRoutesAndParamsResolver->resolveMethodDependencies(
             $urlParams,
             $controllerActionReflectionMethod
         );
 
         $controllerActionParams = [];
-        
-        foreach($controllerActionReflectionMethod->getParameters() as $controllerActionParam) {
+
+        foreach ($controllerActionReflectionMethod->getParameters() as $controllerActionParam) {
             $controllerActionParams[$controllerActionParam->getName()] = \array_shift($controllerActionParamsWithUrlParamsNames);
         }
 
@@ -76,9 +70,9 @@ class Trail
             : (string) $breadcrumbAttr->label;
 
         $crumbUrl = $this->controllerActionRoutesAndParamsResolver->resolveControllerActionUrlWithCurrentRouteParams([
-                $crumbItem->reflControllerAction->class,
-                $crumbItem->reflControllerAction->method
-            ]);
+            $crumbItem->reflControllerAction->class,
+            $crumbItem->reflControllerAction->method
+        ]);
 
         $this->crumbsTrail[] = new ProcessedCrumb(
             $crumbLabel,

@@ -1,11 +1,13 @@
-# Use PHP 8 attributes to register routes in a Laravel app
+# Use PHP 8 attributes to create breadcrumbs for controllers actions in a Laravel app
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/spatie/laravel-route-attributes.svg?style=flat-square)](https://packagist.org/packages/spatie/laravel-route-attributes)
-![Tests](https://github.com/spatie/laravel-route-attributes/workflows/Tests/badge.svg)
-[![Type Coverage](https://shepherd.dev/github/spatie/laravel-route-attributes/coverage.svg)](https://shepherd.dev/github/spatie/laravel-route-attributes)
-[![Total Downloads](https://img.shields.io/packagist/dt/spatie/laravel-route-attributes.svg?style=flat-square)](https://packagist.org/packages/spatie/laravel-route-attributes)
+@TODO:
 
-This package provides annotations to automatically register routes. Here's a quick example:
+1 - Rewrite this README (Currently it's Spatie's Laravel routes attributes one)
+2 - Write (booooooring) tests;
+
+---
+
+This package provides PHP 8 Attribute classes to automatically create breadcrumbs for your controller actions. Here's a quick example:
 
 ```php
 use Spatie\RouteAttributes\Attributes\Get;
@@ -25,17 +27,6 @@ This attribute will automatically register this route:
 Route::get('my-route', [MyController::class, 'myMethod']);
 ```
 
-## Are you a visual learner?
-
-[In this video](https://spatie.be/videos/front-line-php/adding-meta-data-using-attributes) you'll get an introduction to PHP 8 attributes and how this laravel-routes-attributes works under the hood.
-
-## Support us
-
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/laravel-route-attributes.jpg?t=2" width="419px" />](https://spatie.be/github-ad-click/laravel-route-attributes)
-
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
 
 ## Installation
 

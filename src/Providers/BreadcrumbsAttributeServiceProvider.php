@@ -2,12 +2,16 @@
 
 namespace ErickComp\BreadcrumbAttributes\Providers;
 
+use Illuminate\Foundation\Application;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Blade;
+
+use ErickComp\BreadcrumbAttributes\BladeComponents\Breadcrumbs as BreadcrumbsComponent;
 use ErickComp\BreadcrumbAttributes\Commands\CacheBreadcrumbsCommand;
 use ErickComp\BreadcrumbAttributes\Commands\ClearBreadcrumbsCacheCommand;
 use ErickComp\BreadcrumbAttributes\CrumbBasket;
-use Illuminate\Foundation\Application;
 
-use Illuminate\Support\ServiceProvider;
+
 
 class BreadcrumbsAttributeServiceProvider extends ServiceProvider
 {
@@ -24,11 +28,12 @@ class BreadcrumbsAttributeServiceProvider extends ServiceProvider
 
         $this->registerApplicationMacros();
         $this->registerBreadcrumbsCommands();
+        $this->registerBreadcrumbsBladeComponent();
     }
 
     protected function registerApplicationMacros()
     {
-        Application::macro('getCachedErickCompBreadcrumbsPath', function () {
+        Application::macro('getCachedErickCompLaravelAttributesBreadcrumbsPath', function () {
             return $this->normalizeCachePath(
                 CrumbBasket::BREADCRUMBS_CACHE_FILE_KEY,
                 CrumbBasket::BREADCRUMBS_CACHE_FILE_DEFAULT
@@ -44,5 +49,10 @@ class BreadcrumbsAttributeServiceProvider extends ServiceProvider
                 ClearBreadcrumbsCacheCommand::class,
             ]);
         }
+    }
+
+    protected function registerBreadcrumbsBladeComponent()
+    {
+        Blade::component('erickcomp-breadcrumbs', BreadcrumbsComponent::class);
     }
 }

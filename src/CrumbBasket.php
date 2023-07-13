@@ -28,7 +28,7 @@ class CrumbBasket
     private const SPATIE_CONTROLLER_DIRECTORIES_CONFIG_KEY = 'route-attributes.directories';
 
     /** @var array<string, Crumb> $crumbs */
-    public array $crumbs = [];
+    protected array $crumbs = [];
     // private array $reflCrumbsCache;
     private const SPATIE_ROUTE_ATTRIBUTE_FQN = '\\Spatie\\RouteAttributes\\Attributes\\Route';
 
@@ -145,7 +145,7 @@ class CrumbBasket
     protected function getCacheFilePath(): string
     {
         //return $this->application->normalizeCachePath(self::BREADCRUMBS_CACHE_FILE_KEY, self::BREADCRUMBS_CACHE_FILE_DEFAULT);
-        return $this->application->getCachedErickCompBreadcrumbsPath();
+        return $this->application->getCachedErickCompLaravelAttributesBreadcrumbsPath();
     }
 
     public function breadcrumbsAreCached(): bool
