@@ -2,7 +2,8 @@
 
 @TODO:
 
-1 - Rewrite this README (Currently it's Spatie's Laravel routes attributes one)
+~~1 - Rewrite this README (Currently it's Spatie's Laravel routes attributes one)~~
+
 2 - Write (booooooring) tests;
 
 ---
@@ -315,12 +316,12 @@ This style of breadcrumbs component was made from the also awesome package [Tabu
 This package works by checking the controller directories on every request and gather all the breadcrumbs information into our breadcrumb basket. Then, when requested by the programer (through the Trail class, the Breadcrumbs facade or the by using the erickcomp-breadcrumbs blade component), the breadcrumb trail is build based on the previously collected breadcrumbs. But in production mode, the breadcrumbs should not change, so we could entirely skip this gathering of breadcrumbs step. For that caching management, the package provides 2 artisan commands:
 
 ```bash
-erickcomp:cache-breadcrumbs
+erickcomp:laravel-breadcrumbs-attributes:cache
 ```
 and
 
 ```bash
-erickcomp:clear-breadcrumbs-cache
+erickcomp:laravel-breadcrumbs-attributes:clear-cache
 ```
 
 ### Credits
