@@ -7,9 +7,9 @@ use Illuminate\Console\Command;
 
 class ClearBreadcrumbsCacheCommand extends Command
 {
-    public $signature = 'erickcomp:clear-breadcrumbs-cache';
+    public $signature = 'erickcomp:laravel-breadcrumbs-attributes:clear-cache';
 
-    public $description = 'Deletes the breadcrumbs cache, so the controllers are scanned in every request';
+    public $description = 'Deletes the breadcrumbs cache, so the controllers are scanned on every request';
 
     public function handle(CrumbBasket $crumbBasket)
     {

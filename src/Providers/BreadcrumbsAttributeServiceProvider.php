@@ -15,13 +15,6 @@ use ErickComp\BreadcrumbAttributes\CrumbBasket;
 
 class BreadcrumbsAttributeServiceProvider extends ServiceProvider
 {
-    public function boot()
-    {
-        /** @var CrumbBasket */
-        $crumbBasket = $this->app->make(CrumbBasket::class);
-        $crumbBasket->gatherCrumbsOntoBasket();
-    }
-
     public function register()
     {
         $this->app->singleton(CrumbBasket::class);
@@ -29,6 +22,29 @@ class BreadcrumbsAttributeServiceProvider extends ServiceProvider
         $this->registerApplicationMacros();
         $this->registerBreadcrumbsCommands();
         $this->registerBreadcrumbsBladeComponent();
+    }
+
+    public function boot()
+    {
+        $this->publishConfigFileIfAsked();
+        /** @var CrumbBasket */
+        $crumbBasket = $this->app->make(CrumbBasket::class);
+        $crumbBasket->gatherCrumbsOntoBasket();
+    }
+
+    protected function publishConfigFileIfAsked()
+    {
+        if(!$this->app->runningInConsole()) {
+            return;
+        }
+
+        $configFile = 'erickcomp-laravel-breadcrumbs-attributes.php';
+        $packageConfigFile = __DIR__ . \DIRECTORY_SEPARATOR
+            . '..' . \DIRECTORY_SEPARATOR
+            . 'config' . \DIRECTORY_SEPARATOR
+            . $configFile;
+
+        $this->publishes([$packageConfigFile => \config_path($configFile)], 'config');
     }
 
     protected function registerApplicationMacros()

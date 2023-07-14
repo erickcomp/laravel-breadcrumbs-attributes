@@ -7,25 +7,16 @@
 
 ---
 
-This package provides PHP 8 Attribute classes to automatically create breadcrumbs for your controller actions. Here's a quick example:
+This package provides PHP 8 Attribute classes to automatically create breadcrumbs for your controller actions.
+This package was inspired by Spatie's wonderful [Laravel Routes Attributes](https://github.com/spatie/laravel-route-attributes#use-php-8-attributes-to-register-routes-in-a-laravel-app).
+In fact, a big portion of the "controller methods discovery" was copied from Laravel Routes Attributes package (Thanks for that, Spatie fellows!).
 
-```php
-use Spatie\RouteAttributes\Attributes\Get;
+## How it works
 
-class MyController
-{
-    #[Get('my-route')]
-    public function myMethod()
-    {
-    }
-}
-```
+It works by scanning the controllers in the directories that contains your controllers and putting into a "Breadcrumb basket" all the crumbs you put in your controller actions and making it available at your controllers and views through DI or the `\ErickComp\BreadcrumbAttributes\Facades\BreadcrumbsTrail` facade.
 
-This attribute will automatically register this route:
-
-```php
-Route::get('my-route', [MyController::class, 'myMethod']);
-```
+## Custom controllers directories
+If, for some, reason, you keep your controllers in a different directory, fear not! All you have to do is publish the config file and write down the directories where your controllers lie.
 
 
 ## Installation
@@ -33,513 +24,308 @@ Route::get('my-route', [MyController::class, 'myMethod']);
 You can install the package via composer:
 
 ```bash
-composer require spatie/laravel-route-attributes
+composer require erickcomp/laravel-breadcrumbs-attributes
 ```
 
 You can publish the config file with:
 ```bash
-php artisan vendor:publish --provider="Spatie\RouteAttributes\RouteAttributesServiceProvider" --tag="config"
+php artisan vendor:publish --provider="ErickComp\BreadcrumbAttributes\Providers\RouteAttributesServiceProvider" --tag="config"
 ```
 
 This is the contents of the published config file:
 
 ```php
+<?php
+
 return [
-    /*
-     *  Automatic registration of routes will only happen if this setting is `true`
-     */
-    'enabled' => true,
-
-    /*
-     * Controllers in these directories that have routing attributes
-     * will automatically be registered.
-     *
-     * Optionally, you can specify group configuration by using key/values
-     */
-    'directories' => [
-        app_path('Http/Controllers'),
-
-        app_path('Http/Controllers/Web') => [
-            'middleware' => ['web']
-        ],
-        
-        app_path('Http/Controllers/Api') => [
-            'prefix' => 'api',
-            'middleware' => 'api'
-        ],
-    ],
+    'controller_directories' => [
+        app_path('Http/Controllers')
+    ]
 ];
+
 ```
 
-For controllers outside the applications root namespace directories can also be added using a `namespace => path` pattern in the directories array. In the following example controllers from `Modules\Admin\Http\Controllers` will be included.
-
-```php
-'directories' => [
-    'Modules\Admin\Http\Controllers\\' => base_path('admin-module/Http/Controllers'),
-    // Or
-    base_path('admin-module/Http/Controllers') => [
-        'namespace' => 'Modules\Admin\Http\Controllers\\'
-    ],
-    app_path('Http/Controllers'),
-],
-```
+Here you can customize the directories that will be scanned at your will.
 
 ## Usage
 
-The package provides several annotations that should be put on controller classes and methods. These annotations will be used to automatically register routes
+The package provides a main attribute (`\ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb`) that can handle simple breadcrumbs labels. It also provides some other attributes that are used to handle breadcrumbs that require information that are available to the controller method you want to create a breadcrumb trail.
 
-### Adding a GET route
+The Breadcrumb attribute can hold the following info:
+
+- label
+- parent
+- name
+- auxCrumbBefore (a crumb that will be inserted before the current crumb)
+- auxCrumbBefore (a crumb that will be inserted after the current crumb)
+  
+You did not see the url of the crumb, right? It's because the URL of the crumb is evaluated based on the controller method the attribute is attached. If you create a Breadcrumb attribute and try to use it on a trail without referencing it into a route, an Exception will be thrown.
+
+### Adding a breadcrumb with a simple string label
 
 ```php
-use Spatie\RouteAttributes\Attributes\Get;
+use ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb;
 
 class MyController
 {
-    #[Get('my-route')]
+    #[Breadcrumb(label:'Home', name: 'home')]
+    public function home()
+    {
+    }
+
+    #[Breadcrumb(label:'My Data list', parent:'home', name:'home.my-data-list')]
     public function myMethod()
     {
-
     }
 }
 ```
-
-This attribute will automatically register this route:
+Supposing you registered the routes like this:
 
 ```php
+Route::get('/', [MyController::class, 'home']);
 Route::get('my-route', [MyController::class, 'myMethod']);
 ```
 
-### Using other HTTP verbs
+And the current route in your browser is "http://localhost/my-route"
 
-We have left no HTTP verb behind. You can use these attributes on controller methods.
+These attributes will automatically create breadcrumbs like:
 
 ```php
-#[Spatie\RouteAttributes\Attributes\Post('my-uri')]
-#[Spatie\RouteAttributes\Attributes\Put('my-uri')]
-#[Spatie\RouteAttributes\Attributes\Patch('my-uri')]
-#[Spatie\RouteAttributes\Attributes\Delete('my-uri')]
-#[Spatie\RouteAttributes\Attributes\Options('my-uri')]
+array(6) {
+  [0]=>
+  object(ErickComp\BreadcrumbAttributes\ProcessedCrumb)#336 (2) {
+    ["label"]=>
+    string(4) "Home"
+    ["url"]=> 
+    'http://localhost'
+  }
+  [1]=>
+  object(ErickComp\BreadcrumbAttributes\ProcessedCrumb)#334 (2) {
+    ["label"]=>
+    string(7) "My Data list"
+    ["url"]=>
+    string(43) "http://localhost/my-route"
+  }
 ```
 
-### Resource controllers
+## Creating complex breadcrumbs based on the Request data
+You have all the arguments passed to the method to which the breadcrumb is attached at your disposal in order to generate the ideal label for your breadcrumb. It's done by using some aux attributes. Here's an example:
 
-To register a [resource controller](https://laravel.com/docs/controllers#resource-controllers), use the `Resource` attribute as shown in the example below.
-
-You can use `only` or `except` parameters to manage your resource routes availability.
-
-You can use `parameters` parameter to modify the default parameters set by the resource attribute.
-
-You can use the `names` parameter to set the route names for the resource controller actions. Pass a string value to set a base route name for each controller action or pass an array value to define the route name for each controller action.
-
-You can use `shallow` parameter to make a nested resource to apply nesting only to routes without a unique child identifier (`index`, `create`, `store`).
-
-You can use `apiResource` boolean parameter to only include actions used in APIs. Alternatively, you can use the `ApiResource` attribute, which extends the `Resource` attribute class, but the parameter `apiResource` is already set to `true`.
-
-Using `Resource` attribute with `Domain`, `Prefix` and `Middleware` attributes works as well.
+You have worked the routes definitions this way:
 
 ```php
-use Spatie\RouteAttributes\Attributes\Resource;
+Route::get('/', [MyController::class, 'home']);
+Route::get('/users/list', [MyController::class, 'users-list']);
+Route::get('users/show/{user}', [MyController::class, 'user-show']);
+```
 
-#[Prefix('api/v1')]
-#[Resource(
-    resource: 'photos.comments', 
-    apiResource: true,
-    shallow: true, 
-    parameters: ['comments' => 'comment:uuid'],
-    names: 'api.v1.photoComments',
-    except: ['destroy'],
+And you want the `user-show` breadcrumb label to be like 'Showing user: "John Doe"'
+
+You would need to define your breadcrumbs somewhat this way:
+
+Controller with breadcrumbs attributes:
+```php
+use ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb;
+use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\Breadcrumb;
+use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\ActionParamProperty;
+
+class MyController
+{
+    #[Breadcrumb(label:'Home', name: 'home')]
+    public function home()
+    {
+    }
+
+    #[Breadcrumb(label:'Users List', parent:'home', name:'home.users-list')]
+    public function usersList()
+    {
+    }
+
+    #[Breadcrumb(
+        label: new ConcatLabel('Showing user: ', '"', new ActionParamProperty('user', 'name'), '"'),
+        parent: 'home.users-list',
+        name: 'home.user-list'
+    )]
+    public function showUser(UserModel $user)
+    {
+    }
+}
+```
+
+The generated breadcrumbs will be like:
+
+```php
+array(6) {
+  [0]=>
+  object(ErickComp\BreadcrumbAttributes\ProcessedCrumb)#336 (2) {
+    ["label"]=>
+    string(4) "Home"
+    ["url"]=> 
+    'http://localhost'
+  }
+  [1]=>
+  object(ErickComp\BreadcrumbAttributes\ProcessedCrumb)#334 (2) {
+    ["label"]=>
+    string(7) "Users list"
+    ["url"]=>
+    string(43) "http://localhost/users/list"
+  },
+  [2]=>
+  object(ErickComp\BreadcrumbAttributes\ProcessedCrumb)#332 (2) {
+    ["label"]=>
+    string(7) "Showing user: "John Doe""
+    ["url"]=>
+    string(43) "http://localhost/users/show/52"
+  }
+```
+### The route parameter resolution
+The breadcrumbs links deal with the url params and generate the url's using them, so you (most probably) won't have to deal with url generation for your breadcrumbs. All the url parameters are also passed to the label resolvers
+
+### Label Resolvers
+Label resolvers are the aux classes that you can use on the Breadcrumb constructor to create more complex breadcrumb labels or to add aux breadcrumbs before or after you breadcrumb. They should be self-explanatory, like the "ActionParamProperty" that was used in the example above
+
+### Aux breadcrumbs
+Aux breadcrumbs are used to create "logical" breadcrumbs. They can be used to express menus, for example.
+Let's say you have a menu like this:
+
+├── Home
+├── Admin/
+│   └── Users
+├── Catalog
+└── ...
+
+Your breadcrumbs for the "user-show" could be expressed like this:
+
+Home > Admin > Users > Showing user "John Doe"
+
+In this case, the "Admin" crumb does not have a corresponding url, but it makes sense in the breadcrumbs path
+
+In order to insert this "Admin" crumb, you could rewrite the above example like this:
+
+```php
+use ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb;
+use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\Breadcrumb;
+use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\ActionParamProperty;
+
+class MyController
+{
+    #[Breadcrumb(label:'Home', name: 'home')]
+    public function home()
+    {
+    }
+
+    #[Breadcrumb(label:'Users List', parent:'home', name:'home.users-list')]
+    public function usersList()
+    {
+    }
+
+    #[Breadcrumb(
+        label: new ConcatLabel('Showing user: ', '"', new ActionParamProperty('user', 'name'), '"'),
+        parent: 'home.users-list',
+        name: 'home.user-list',
+        auxCrumbBefore: 'Admin'
+    )]
+    public function showUser(UserModel $user)
+    {
+    }
+}
+```
+
+And the "Admin" crumb will be added to the breadcrumbs trail.
+
+You can use `ConcatLabel` and the other Aux breadcrumbs classes here as well:
+
+```php
+
+#[Breadcrumb(
+    label: new ConcatLabel('Showing user: ', '"', new ActionParamProperty('user', 'name'), '"'),
+    parent: 'home.users-list',
+    name: 'home.user-show',
+    auxCrumbBefore: new ConcatLabel('A', 'd', 'm', 'i', 'n')
 )]
-// OR #[ApiResource(resource: 'photos.comments', shallow: true, ...)]
-class PhotoCommentController
-{   
-    public function index(Photo $photo)
-    {
-    }
-
-    public function store(Request $request, Photo $photo)
-    {
-    }
-
-    public function show(Comment $comment)
-    {
-    }
-
-    public function update(Request $request, Comment $comment)
-    {
-    }
+public function showUser(UserModel $user)
+{
 }
 ```
 
-The attribute in the example above will automatically register following routes:
+### Integration with other packages (Spatie's Laravel Route Attributes)
+
+As I said, this package was inspired by by Spatie's wonderful [Laravel Routes Attributes](https://github.com/spatie/laravel-route-attributes#use-php-8-attributes-to-register-routes-in-a-laravel-app). In fact, I have designed this package to work alongside Spatie's package, so it has some built-in integrations with it:
+
+- If you're using custom directories for the controllers and you have defined them in the `route-attributes` config file, you don't have to redefine it again in the breadcrumbs config, because it tries to read the one from spatie's route attributes;
+- If you are naming your routes (and I advise you to do so!) you can omit the "name" argument of the Breadcrumb attribute, as the Breadcrumb is going to use the one defined in the route attribute.
+
+Example:
 
 ```php
-Route::get('api/v1/photos/{photo}/comments', [PhotoCommentController::class, 'index'])->name('api.v1.photoComments.index');
-Route::post('api/v1/photos/{photo}/comments', [PhotoCommentController::class, 'store'])->name('api.v1.photoComments.store');
-Route::get('api/v1/comments/{comment}', [PhotoCommentController::class, 'show'])->name('api.v1.photoComments.show');
-Route::match(['put', 'patch'], 'api/v1/comments/{comment}', [PhotoCommentController::class, 'update'])->name('api.v1.photoComments.update');
-```
-
-### Using multiple verbs
-
-To register a route for all verbs, you can use the `Any` attribute:
-
-```php
-#[Spatie\RouteAttributes\Attributes\Any('my-uri')]
-```
-
-To register a route for a few verbs at once, you can use the `Route` attribute directly:
-
-```php
-#[Spatie\RouteAttributes\Attributes\Route(['put', 'patch'], 'my-uri')]
-```
-
-### Specify a route name
-
-All HTTP verb attributes accept a parameter named `name` that accepts a route name.
-
-```php
+use ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb;
+use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\Breadcrumb;
+use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\ActionParamProperty;
 use Spatie\RouteAttributes\Attributes\Get;
+
 
 class MyController
 {
-    #[Get('my-route', name: "my-route-name")]
-    public function myMethod()
+    #[Get('/', name: 'home')]
+    #[Breadcrumb(label:'Home')]
+    public function home()
+    {
+    }
+
+    #[Get('/users/list', name: 'home.users-list')]
+    #[Breadcrumb(label:'Users List', parent:'home')]
+    public function usersList()
+    {
+    }
+
+    
+    #[Get('/users/show/{user}', name: 'home.users-list.user-show')]
+    #[Breadcrumb(
+        label: new ConcatLabel('Showing user: ', '"', new ActionParamProperty('user', 'name'), '"'),
+        parent: 'home.users-list'
+    )]
+    public function showUser(UserModel $user)
     {
     }
 }
 ```
 
-This attribute will automatically register this route:
+### Blade integration
+This packages also provides a blade component that renders the breadcrumbs from the current route.
+It should be used like this inside your blade template:
 
-```php
-Route::get('my-route', [MyController::class, 'myMethod'])->name('my-route-name');
+```html
+<ul>
+    <x-erickcomp-breadcrumbs />
+</ul>
 ```
 
-### Adding middleware
-
-All HTTP verb attributes accept a parameter named `middleware` that accepts a middleware class or an array of middleware classes.
-
-```php
-use Spatie\RouteAttributes\Attributes\Get;
-
-class MyController
-{
-    #[Get('my-route', middleware: MyMiddleware::class)]
-    public function myMethod()
-    {
-
-    }
-}
+To define classes of list items, you can specify:
+```html
+<ul>
+    <x-erickcomp-breadcrumbs />
+</ul>
 ```
 
-This annotation will automatically register this route:
+This style of breadcrumbs component was made from the also awesome package [Tabuna Breadcrumbs](https://github.com/tabuna/breadcrumbs#introduction). Before coding this package, my intent was to use Tabuna breadcrumbs, but we cannot use closures on PHP attributes. But I got some concepts from there (and the component code) to build my own package as well.
 
-```php
-Route::get('my-route', [MyController::class, 'myMethod'])->middleware(MyMiddleware::class);
+### Caching
+This package works by checking the controller directories on every request and gather all the breadcrumbs information into our breadcrumb basket. Then, when requested by the programer (through the Trail class, the Breadcrumbs facade or the by using the erickcomp-breadcrumbs blade component), the breadcrumb trail is build based on the previously collected breadcrumbs. But in production mode, the breadcrumbs should not change, so we could entirely skip this gathering of breadcrumbs step. For that caching management, the package provides 2 artisan commands:
+
+```bash
+erickcomp:cache-breadcrumbs
+```
+and
+
+```bash
+erickcomp:clear-breadcrumbs-cache
 ```
 
-To apply middleware on all methods of a class you can use the `Middleware` attribute. You can mix this with applying attribute on a method.
+### Credits
 
-```php
-use Spatie\RouteAttributes\Attributes\Get;
-use Spatie\RouteAttributes\Attributes\Middleware;
+I have searched and tested several routes and breadcrumbs packages and I liked Spatie's Laravel Route Attributes and Tabuna Breadcrumbs the most. As I was unable to make them work together organically,
+I decided to create my own package based on both of their ideas (and pieces of code. Once again, thank you both for that) and create something totally functional using PHP 8 Attributes.
 
-#[Middleware(MyMiddleware::class)]
-class MyController
-{
-    #[Get('my-route')]
-    public function firstMethod()
-    {
-    }
+### License
 
-    #[Get('my-other-route', middleware: MyOtherMiddleware::class)]
-    public function secondMethod()
-    {
-    }
-}
-```
-
-These annotations will automatically register these routes:
-
-```php
-Route::get('my-route', [MyController::class, 'firstMethod'])->middleware(MyMiddleware::class);
-Route::get('my-other-route', [MyController::class, 'secondMethod'])->middleware([MyMiddleware::class, MyOtherMiddleware::class]);
-```
-
-### Specifying a prefix
-
-You can use the `Prefix` annotation on a class to prefix the routes of all methods of that class.
-
-```php
-use Spatie\RouteAttributes\Attributes\Get;
-use Spatie\RouteAttributes\Attributes\Post;
-use Spatie\RouteAttributes\Attributes\Prefix;
-
-#[Prefix('my-prefix')]
-class MyController
-{
-    #[Get('my-get-route')]
-    public function myGetMethod()
-    {
-    }
-
-    #[Post('my-post-route')]
-    public function myPostMethod()
-    {
-    }
-}
-```
-
-These annotations will automatically register these routes:
-
-```php
-Route::get('my-prefix/my-get-route', [MyController::class, 'myGetMethod']);
-Route::post('my-prefix/my-post-route', [MyController::class, 'myPostMethod']);
-```
-
-### Specifying a domain
-
-You can use the `Domain` annotation on a class to prefix the routes of all methods of that class.
-
-```php
-use Spatie\RouteAttributes\Attributes\Get;
-use Spatie\RouteAttributes\Attributes\Post;
-use Spatie\RouteAttributes\Attributes\Domain;
-
-#[Domain('my-subdomain.localhost')]
-class MyController
-{
-    #[Get('my-get-route')]
-    public function myGetMethod()
-    {
-    }
-
-    #[Post('my-post-route')]
-    public function myPostMethod()
-    {
-    }
-}
-```
-
-These annotations will automatically register these routes:
-
-```php
-Route::get('my-get-route', [MyController::class, 'myGetMethod'])->domain('my-subdomain.localhost');
-Route::post('my-post-route', [MyController::class, 'myPostMethod'])->domain('my-subdomain.localhost');
-```
-
-### Specifying a domain from a config key
-
-There maybe a need to define a domain from a configuration file, for example where
-your subdomain will be different on your development environment to your production environment.
-
-
-```php
-// config/domains.php
-return [
-    'main' => env('SITE_URL', 'example.com'),
-    'subdomain' => env('SUBDOMAIN_URL', 'subdomain.example.com')
-];
-```
-
-```php
-use Spatie\RouteAttributes\Attributes\Get;
-use Spatie\RouteAttributes\Attributes\Post;
-use Spatie\RouteAttributes\Attributes\DomainFromConfig;
-
-#[DomainFromConfig('domains.main')]
-class MyController
-{
-    #[Get('my-get-route')]
-    public function myGetMethod()
-    {
-    }
-}
-```
-When this is parsed, it will get the value of `domains.main` from the config file and 
-register the route as follows;
-
-```php
-Route::get('my-get-route', [MyController::class, 'myGetMethod'])->domain('example.com');
-```
-
-### Scoping bindings
-When implicitly binding multiple Eloquent models in a single route definition, you may wish to scope the second Eloquent model such that it must be a child of the previous Eloquent model.  
-By adding the `ScopeBindings` annotation, you can enable this behaviour:
-
-````php
-use Spatie\RouteAttributes\Attributes\Get;
-use Spatie\RouteAttributes\Attributes\ScopeBindings;
-
-class MyController
-{
-    #[Get('users/{user}/posts/{post}')]
-    #[ScopeBindings]
-    public function getUserPost(User $user, Post $post)
-    {
-        return $post;
-    }
-}
-````
-
-This is akin to using the `->scopeBindings()` method on the route registrar manually:
-```php
-Route::get('/users/{user}/posts/{post}', function (User $user, Post $post) {
-    return $post;
-})->scopeBindings();
-```
-
-You can also use the annotation on controllers to enable implicitly scoped bindings for all its methods.
-
-### Specifying where
-
-You can use the `Where` annotation on a class or method to constrain the format of your route parameters.
-
-
-```php
-use Spatie\RouteAttributes\Attributes\Get;
-use Spatie\RouteAttributes\Attributes\Post;
-use Spatie\RouteAttributes\Attributes\Where;
-use Spatie\RouteAttributes\Attributes\WhereAlphaNumeric;
-
-#[Where('my-where', '[0-9]+')]
-class MyController
-{
-    #[Get('my-get-route/{my-where}')]
-    public function myGetMethod()
-    {
-    }
-
-    #[Post('my-post-route/{my-where}/{my-alpha-numeric}')]
-    #[WhereAlphaNumeric('my-alpha-numeric')]
-    public function myPostMethod()
-    {
-    }
-}
-```
-
-These annotations will automatically register these routes:
-
-```php
-Route::get('my-get-route/{my-where}', [MyController::class, 'myGetMethod'])->where(['my-where' => '[0-9]+']);
-Route::post('my-post-route/{my-where}/{my-alpha-numeric}', [MyController::class, 'myPostMethod'])->where(['my-where' => '[0-9]+', 'my-alpha-numeric' => '[a-zA-Z0-9]+']);
-```
-
-For convenience, some commonly used regular expression patterns have helper attributes that allow you to quickly add pattern constraints to your routes.
-
-```php 
-#[WhereAlpha('alpha')]
-#[WhereAlphaNumeric('alpha-numeric')]
-#[WhereIn('in', ['value1', 'value2'])]
-#[WhereNumber('number')]
-#[WhereUlid('ulid')]
-#[WhereUuid('uuid')]
-```
-
-### Specifying a group
-
-You can use the `Group` annotation on a class to create multiple groups with different domains and prefixes for the routes of all methods of that class.
-
-```php
-use Spatie\RouteAttributes\Attributes\Get;
-use Spatie\RouteAttributes\Attributes\Post;
-use Spatie\RouteAttributes\Attributes\Domain;
-
-#[Group(domain: 'my-subdomain.localhost', prefix: 'my-prefix')]
-#[Group(domain: 'my-second-subdomain.localhost', prefix: 'my-second-prefix')]
-class MyController
-{
-    #[Get('my-get-route')]
-    public function myGetMethod()
-    {
-    }
-
-    #[Post('my-post-route')]
-    public function myPostMethod()
-    {
-    }
-}
-```
-
-These annotations will automatically register these routes:
-
-```php
-Route::get('my-get-route', [MyController::class, 'myGetMethod'])->prefix('my-prefix')->domain('my-subdomain.localhost');
-Route::post('my-post-route', [MyController::class, 'myPostMethod'])->prefix('my-prefix')->domain('my-subdomain.localhost');
-Route::get('my-get-route', [MyController::class, 'myGetMethod'])->prefix('my-second-prefix')->domain('my-second-subdomain.localhost');
-Route::post('my-post-route', [MyController::class, 'myPostMethod'])->prefix('my-second-prefix')->domain('my-second-subdomain.localhost');
-```
-
-### Specifying defaults
-
-You can use the `Defaults` annotation on a class or method to define the default values of your optional route parameters.
-
-```php
-use Spatie\RouteAttributes\Attributes\Defaults;
-use Spatie\RouteAttributes\Attributes\Get;
-use Spatie\RouteAttributes\Attributes\Post;
-
-#[Defaults('param', 'controller-default')]
-class MyController extends Controller
-{
-    #[Get('my-get-route/{param?}')]
-    public function myGetMethod($param)
-    {
-    }
-
-    #[Post('my-post-route/{param?}/{param2?}')]
-    #[Defaults('param2', 'method-default')]
-    public function myPostMethod($param, $param2)
-    {
-    }
-
-    #[Get('my-default-route/{param?}/{param2?}/{param3?}')]
-    #[Defaults('param2', 'method-default-first')]
-    #[Defaults('param3', 'method-default-second')]
-    public function myDefaultMethod($param, $param2, $param3)
-    {
-    }
-
-    #[Get('my-override-route/{param?}')]
-    #[Defaults('param', 'method-default')]
-    public function myOverrideMethod($param)
-    {
-    }
-}
-```
-
-These annotations will automatically register these routes:
-
-```php
-Route::get('my-get-route/{param?}', [MyController::class, 'myGetMethod'])->setDefaults(['param', 'controller-default']);
-Route::post('my-post-route/{param?}/{param2?}', [MyController::class, 'myPostMethod'])->setDefaults(['param', 'controller-default', 'param2' => 'method-default']);
-Route::get('my-default-route/{param?}/{param2?}/{param3?}', [MyController::class, 'myDefaultMethod'])->setDefaults(['param', 'controller-default', 'param2' => 'method-default-first', 'param3' => 'method-default-second']);
-Route::get('my-override-route/{param?}', [MyController::class, 'myOverrideMethod'])->setDefaults(['param', 'method-default']);
-```
-
-## Testing
-
-``` bash
-composer test
-```
-
-## Changelog
-
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
-
-## Contributing
-
-Please see [CONTRIBUTING](https://github.com/spatie/.github/blob/main/CONTRIBUTING.md) for details.
-
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
-
-## Credits
-
-- [Freek Van der Herten](https://github.com/freekmurze)
-- [All Contributors](../../contributors)
-
-## License
-
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+The MIT License (MIT). Please see [License File](LICENSE) for more information.

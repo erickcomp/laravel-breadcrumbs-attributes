@@ -223,7 +223,7 @@ class CrumbBasket
                 if ($spatieRoute === null) {
                     $errMsg = "If the method does not contain a "
                         . self::SPATIE_ROUTE_ATTRIBUTE_FQN
-                        . " attribute, you must provide a route name";
+                        . " attribute, you must provide a name";
 
                     throw new \LogicException($errMsg);
                 }

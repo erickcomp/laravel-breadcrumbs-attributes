@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 
 class CacheBreadcrumbsCommand extends Command
 {
-    public $signature = 'erickcomp:cache-breadcrumbs';
+    public $signature = 'erickcomp:laravel-breadcrumbs-attributes:cache';
 
     public $description = 'Caches breadcrumbs, so the controllers are not scanned on every request. This is the recommended behavior for production';
 
