@@ -187,12 +187,13 @@ Label resolvers are the aux classes that you can use on the Breadcrumb construct
 ### Aux breadcrumbs
 Aux breadcrumbs are used to create "logical" breadcrumbs. They can be used to express menus, for example.
 Let's say you have a menu like this:
-
+```
 ├── Home
 ├── Admin/
 │   └── Users
 ├── Catalog
 └── ...
+```
 
 Your breadcrumbs for the "user-show" could be expressed like this:
 
@@ -294,17 +295,18 @@ class MyController
 This packages also provides a blade component that renders the breadcrumbs from the current route.
 It should be used like this inside your blade template:
 
-```html
+```blade
 <ul>
     <x-erickcomp-breadcrumbs />
 </ul>
 ```
 
 To define classes of list items, you can specify:
-```html
-<ul>
-    <x-erickcomp-breadcrumbs />
-</ul>
+```blade
+<x-erickcomp-breadcrumbs
+  class="item"
+  activeClass="active"
+/>
 ```
 
 This style of breadcrumbs component was made from the also awesome package [Tabuna Breadcrumbs](https://github.com/tabuna/breadcrumbs#introduction). Before coding this package, my intent was to use Tabuna breadcrumbs, but we cannot use closures on PHP attributes. But I got some concepts from there (and the component code) to build my own package as well.
