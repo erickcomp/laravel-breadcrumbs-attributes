@@ -109,7 +109,7 @@ array(6) {
   }
 ```
 
-## Creating complex breadcrumbs based on the Request data
+### Creating complex breadcrumbs based on the Request data
 You have all the arguments passed to the method to which the breadcrumb is attached at your disposal in order to generate the ideal label for your breadcrumb. It's done by using some aux attributes. Here's an example:
 
 You have worked the routes definitions this way:
@@ -250,7 +250,7 @@ public function showUser(UserModel $user)
 }
 ```
 
-### Integration with other packages (Spatie's Laravel Route Attributes)
+## Integration with other packages (Spatie's Laravel Route Attributes)
 
 As I said, this package was inspired by by Spatie's wonderful [Laravel Routes Attributes](https://github.com/spatie/laravel-route-attributes#use-php-8-attributes-to-register-routes-in-a-laravel-app). In fact, I have designed this package to work alongside Spatie's package, so it has some built-in integrations with it:
 
@@ -292,7 +292,7 @@ class MyController
 }
 ```
 
-### Blade integration
+## Blade integration
 This packages also provides a blade component that renders the breadcrumbs from the current route.
 It should be used like this inside your blade template:
 
@@ -312,7 +312,7 @@ To define classes of list items, you can specify:
 
 This style of breadcrumbs component was made from the also awesome package [Tabuna Breadcrumbs](https://github.com/tabuna/breadcrumbs#introduction). Before coding this package, my intent was to use Tabuna breadcrumbs, but we cannot use closures on PHP attributes. But I got some concepts from there (and the component code) to build my own package as well.
 
-### Caching
+## Caching
 This package works by checking the controller directories on every request and gather all the breadcrumbs information into our breadcrumb basket. Then, when requested by the programer (through the Trail class, the Breadcrumbs facade or the by using the erickcomp-breadcrumbs blade component), the breadcrumb trail is build based on the previously collected breadcrumbs. But in production mode, the breadcrumbs should not change, so we could entirely skip this gathering of breadcrumbs step. For that caching management, the package provides 2 artisan commands:
 
 ```bash
@@ -324,11 +324,11 @@ and
 erickcomp:laravel-breadcrumbs-attributes:clear-cache
 ```
 
-### Credits
+## Credits
 
 I have searched and tested several routes and breadcrumbs packages and I liked Spatie's Laravel Route Attributes and Tabuna Breadcrumbs the most. As I was unable to make them work together organically,
 I decided to create my own package based on both of their ideas (and pieces of code. Once again, thank you both for that) and create something totally functional using PHP 8 Attributes.
 
-### License
+## License
 
 The MIT License (MIT). Please see [License File](LICENSE) for more information.

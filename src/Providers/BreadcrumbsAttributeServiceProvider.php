@@ -11,8 +11,6 @@ use ErickComp\BreadcrumbAttributes\Commands\CacheBreadcrumbsCommand;
 use ErickComp\BreadcrumbAttributes\Commands\ClearBreadcrumbsCacheCommand;
 use ErickComp\BreadcrumbAttributes\CrumbBasket;
 
-
-
 class BreadcrumbsAttributeServiceProvider extends ServiceProvider
 {
     public function register()
@@ -34,7 +32,7 @@ class BreadcrumbsAttributeServiceProvider extends ServiceProvider
 
     protected function publishConfigFileIfAsked()
     {
-        if(!$this->app->runningInConsole()) {
+        if (!$this->app->runningInConsole()) {
             return;
         }
 

@@ -85,6 +85,11 @@ class CrumbBasket
         return \array_reverse($crumbsTrail);
     }
 
+    public function breadcrumbsAreCached(): bool
+    {
+        return $this->fileSystem->exists($this->getCacheFilePath());
+    }
+
     public function cacheBreadcrumbs()
     {
         $this->clearBreadcrumbsCache();
@@ -146,11 +151,6 @@ class CrumbBasket
     {
         //return $this->application->normalizeCachePath(self::BREADCRUMBS_CACHE_FILE_KEY, self::BREADCRUMBS_CACHE_FILE_DEFAULT);
         return $this->application->getCachedErickCompLaravelAttributesBreadcrumbsPath();
-    }
-
-    public function breadcrumbsAreCached(): bool
-    {
-        return $this->fileSystem->exists($this->getCacheFilePath());
     }
 
     /**

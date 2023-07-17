@@ -26,11 +26,13 @@
     },
     "require-dev": {
         "orchestra/testbench": "^6.25|^7.0|^8.0",
-        "phpunit/phpunit": "^9.5.10"
+        "phpunit/phpunit": "^9.5.10",
+        "spatie/laravel-route-attributes": "^1.18"
     },
     "autoload": {
         "psr-4": {
-            "ErickComp\\BreadcrumbAttributes\\": "src"
+            "ErickComp\\BreadcrumbAttributes\\": "src",
+            "ErickComp\\BreadcrumbAttributes\\Tests\\": "tests"
         }
     },
     "autoload-dev": {
