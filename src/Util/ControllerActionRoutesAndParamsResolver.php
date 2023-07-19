@@ -2,6 +2,7 @@
 
 namespace ErickComp\BreadcrumbAttributes\Util;
 
+use Illuminate\Container\Container;
 use Illuminate\Routing\Router;
 use Illuminate\Routing\ResolvesRouteDependencies;
 use Illuminate\Contracts\Routing\UrlGenerator;
@@ -13,7 +14,8 @@ class ControllerActionRoutesAndParamsResolver
 
     public function __construct(
         protected Router $router,
-        protected UrlGenerator $urlGenerator
+        protected UrlGenerator $urlGenerator,
+        protected Container $container // used inside "ResolvesRouteDependencies" trait
     ) {
     }
 
@@ -38,17 +40,19 @@ class ControllerActionRoutesAndParamsResolver
             }
         }
         //return $this->urlGenerator->route($route, $this->getParametersForRouteFromCurrentRouteParams($route));
-        return $this->urlGenerator->action($controllerAction, $this->getParametersForControllerActionromCurrentRouteParams($controllerAction));
+        return $this->urlGenerator->action($controllerAction, $this->getParametersForControllerActionUrlFromCurrentRouteParams($controllerAction));
     }
 
     public function getControllerActionParamsFromCurrentRouteParams(ReflectionMethod $controllerAction)
     {
-        return $this->resolveMethodDependencies($this->getCurrentRouteParams(), $controllerAction);
+        return $this->resolveMethodDependencies($this->getCurrentRouteParams(false), $controllerAction);
     }
 
-    protected function getCurrentRouteParams(): array
+    protected function getCurrentRouteParams(bool $returnOriginalParams): array
     {
-        return $this->getRouter()->getCurrentRoute()->parameters();
+        return $returnOriginalParams
+            ? $this->getRouter()->getCurrentRoute()->originalParameters()
+            : $this->getRouter()->getCurrentRoute()->parameters();
     }
 
     protected function getRouter(): Router
@@ -58,7 +62,7 @@ class ControllerActionRoutesAndParamsResolver
 
     protected function getParametersForRouteFromCurrentRouteParams(string $routeName): array
     {
-        $params = $this->getCurrentRouteParams();
+        $params = $this->getCurrentRouteParams(true);
         $route = $this->getRouter()->getRoutes()->getByName($routeName);
 
         if (!$route) {
@@ -70,9 +74,9 @@ class ControllerActionRoutesAndParamsResolver
         return \array_filter($params, fn($paramName) => \in_array($paramName, $routeParamsNames), \ARRAY_FILTER_USE_KEY);
     }
 
-    protected function getParametersForControllerActionromCurrentRouteParams(string $controllerAction): array
+    protected function getParametersForControllerActionUrlFromCurrentRouteParams(string $controllerAction): array
     {
-        $params = $this->getCurrentRouteParams();
+        $params = $this->getCurrentRouteParams(true);
         $route = $this->getRouter()->getRoutes()->getByAction($controllerAction);
 
         if (!$route) {

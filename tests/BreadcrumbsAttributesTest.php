@@ -4,14 +4,20 @@ namespace ErickComp\BreadcrumbAttributes\Tests;
 
 use Closure;
 use ErickComp\BreadcrumbAttributes\CrumbBasket;
+use ErickComp\BreadcrumbAttributes\Facades\BreadcrumbsTrail;
 use ErickComp\BreadcrumbAttributes\Providers\BreadcrumbsAttributeServiceProvider;
 use ErickComp\BreadcrumbAttributes\Commands\CacheBreadcrumbsCommand;
 use ErickComp\BreadcrumbAttributes\Commands\ClearBreadcrumbsCacheCommand;
 use ErickComp\BreadcrumbAttributes\Tests\TestClasses\Controllers\ControllerWithoutSpatieRoutes;
+use ErickComp\BreadcrumbAttributes\Tests\TestClasses\Models\FakeModel;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
+use URL;
+
 
 class BreadcrumbsAttributesTest extends TestCase
 {
@@ -25,12 +31,177 @@ class BreadcrumbsAttributesTest extends TestCase
         parent::setUp();
 
         $this->registerTraditionalRoutes();
+        $this->registerSpatieRoutes();
+
         $this->registerTestBreadcrumbs();
     }
 
-    public function it_can_create_a_breadcrumb_with_simple_label_without_parent()
+    /** @test */
+    public function it_can_register_a_breadcrumb_without_parent()
     {
+        $this->assertBreadcrumbIsRegistered('home');
+    }
 
+    /** @test */
+    public function it_can_generate_a_breadcrumb_without_parent()
+    {
+        $response = $this->get('/');
+
+        $response->assertExactJson([
+            [
+                'label' => 'Home',
+                'url' => URL::to('/')
+            ]
+        ]);
+    }
+
+    /** @test */
+    public function it_can_register_a_breadcrumb_with_a_simple_label()
+    {
+        $this->assertBreadcrumbIsRegistered('home.aSimple');
+    }
+
+    /** @test */
+    public function it_can_generate_a_breadcrumb_with_a_simple_label()
+    {
+        $response = $this->get('simple');
+
+        $response->assertExactJson([
+            [
+                'label' => 'Home',
+                'url' => URL::to('/')
+            ],
+            [
+                'label' => 'Simple',
+                'url' => URL::to('simple')
+            ]
+        ]);
+    }
+
+    /** @test */
+    public function it_can_register_a_breadcrumb_with_an_action_param()
+    {
+        $this->assertBreadcrumbIsRegistered('home.aActionParam');
+    }
+
+    /** @test */
+    public function it_can_generate_a_breadcrumb_with_an_action_param()
+    {
+        $response = $this->get('action-param/Param1PassedInRouteSegment');
+
+        $response->assertExactJson([
+            [
+                'label' => 'Home',
+                'url' => URL::to('/')
+            ],
+            [
+                'label' => 'Param1PassedInRouteSegment',
+                'url' => URL::to('action-param/Param1PassedInRouteSegment')
+            ]
+        ]);
+    }
+
+    /** @test */
+    public function it_can_register_a_breadcrumb_with_an_action_param_method()
+    {
+        $this->assertBreadcrumbIsRegistered('home.aActionParamMethod');
+    }
+
+    /** @test */
+    public function it_can_generate_a_breadcrumb_with_an_action_param_method()
+    {
+        $response = $this->get('action-param-method');
+
+        $response->assertExactJson([
+            [
+                'label' => 'Home',
+                'url' => URL::to('/')
+            ],
+            [
+                'label' => URL::to('action-param-method'),
+                'url' => URL::to('action-param-method')
+            ]
+        ]);
+    }
+
+    /** @test */
+    public function it_can_register_a_breadcrumb_with_an_action_param_property()
+    {
+        $this->assertBreadcrumbIsRegistered('home.aActionParamProperty');
+    }
+
+    /** @test */
+    public function it_can_generate_a_breadcrumb_with_an_action_param_property()
+    {
+        $response = $this->get('action-param-property');
+
+        $response->assertExactJson([
+            [
+                'label' => 'Home',
+                'url' => URL::to('/')
+            ],
+            [
+                'label' => 'action-param-property',
+                'url' => URL::to('action-param-property')
+            ]
+        ]);
+    }
+
+    /** @test */
+    public function it_can_register_a_breadcrumb_with_a_concat_label()
+    {
+        $this->assertBreadcrumbIsRegistered('home.aConcatLabel');
+    }
+
+    /** @test */
+    public function it_can_generate_a_breadcrumb_with_a_concat_label()
+    {
+        $response = $this->get('concat-label');
+
+        $response->assertExactJson([
+            [
+                'label' => 'Home',
+                'url' => URL::to('/')
+            ],
+            [
+                'label' => 'Concat part 1|Concat part 2',
+                'url' => URL::to('concat-label')
+            ]
+        ]);
+    }
+
+    /** @test */
+    public function it_can_register_a_breadcrumb_with_an_eval_crumb()
+    {
+        $this->assertBreadcrumbIsRegistered('home.aEvalCrumb');
+    }
+
+    /** @test */
+    public function it_can_generate_a_breadcrumb_with_an_eval_crumb()
+    {
+        $response = $this->get('eval-crumb/huehuehue/ErickComp');
+
+        $response->assertExactJson([
+            [
+                'label' => 'Home',
+                'url' => URL::to('/')
+            ],
+            [
+                'label' => 'huehuehue: ERICKCOMP',
+                'url' => URL::to('eval-crumb/huehuehue/ErickComp')
+            ]
+        ]);
+    }
+
+    /** @test */
+    public function it_can_register_a_breadcrumb_using_the_spatie_route_attribute_name()
+    {
+        $this->assertBreadcrumbIsRegistered('home.spatie-get-method-no-name');
+    }
+
+    public function it_can_register_a_breadcrumb_using_the_spatie_route_attribute_and_custom_name()
+    {
+        $this->assertBreadcrumbIsRegistered('home.spatie-get-simple-named');
     }
 
     protected function getPackageProviders($app)
@@ -42,16 +213,37 @@ class BreadcrumbsAttributesTest extends TestCase
 
     protected function registerTraditionalRoutes()
     {
-        $prefix = "tests-ericklimacomp-laravel-breadcrumbs";
+        $prefix = "ericklimacomp-";
 
-        $routes = [
-            "$prefix-route001" => [ControllerWithSpatieRoutes::class, 'route001'],
-            "$prefix-route002" => [ControllerWithSpatieRoutes::class, 'route002']
+        $routesStrs = [
+            '/' => 'home',
+            'simple' => 'aSimple',
+            'action-param/{param1}' => 'aActionParam',
+            'action-param-method' => 'aActionParamMethod',
+            'action-param-property' => 'aActionParamProperty',
+            'concat-label' => 'aConcatLabel',
+            'eval-crumb/{param1}/{fake_model?}' => 'aEvalCrumb'
         ];
 
-        foreach ($routes as $route => $handler) {
-            Route::get($route, $handler);
+        foreach ($routesStrs as $route => $method) {
+            Route::get("$route", [ControllerWithoutSpatieRoutes::class, $method])
+                ->name("$prefix-$method")
+                ->middleware(SubstituteBindings::class);
         }
+    }
+
+    protected function registerSpatieRoutes()
+    {
+        /** @var \Spatie\RouteAttributes\RouteRegistrar $routeRegistrar */
+        $routeRegistrar = $this->app->make(\Spatie\RouteAttributes\RouteRegistrar::class);
+
+        $rootNamespace = '\\' . __NAMESPACE__ . '\\TestClasses\\Controllers';
+        $controllersDir = __DIR__ . DIRECTORY_SEPARATOR . 'TestClasses' . DIRECTORY_SEPARATOR . 'Controllers';
+        $routeRegistrar
+            ->useRootNamespace($rootNamespace)
+            ->useMiddleware(SubstituteBindings::class)
+            ->useBasePath($controllersDir)
+            ->registerDirectory($controllersDir);
     }
 
     protected function registerTestBreadcrumbs()
@@ -77,7 +269,9 @@ class BreadcrumbsAttributesTest extends TestCase
 
         $crumbBasketCaller->call($crumbBasket, 'gatherCrumbsOfDirectories', [$testDir]);
 
-        dd($crumbBasket);
+        $this->app->singleton(CrumbBasket::class, function () use ($crumbBasket) {
+            return $crumbBasket;
+        });
     }
 
     /**
@@ -92,82 +286,26 @@ class BreadcrumbsAttributesTest extends TestCase
         parent::resolveApplicationConfiguration($app);
     }
 
-    /** @test */
-    public function the_provider_can_register_application_macro_getCachedErickCompLaravelAttributesBreadcrumbsPath()
+    protected function assertBreadcrumbIsRegistered(string $name)
     {
-        foreach (self::APPLICATION_MACROS as $macro) {
-            $this->assertTrue($this->app->hasMacro($macro), "Macro $macro is not registered");
-        }
-    }
+        static $registeredBreadcrumbs = null;
 
-    /** @test */
-    public function the_provider_can_register_breadcrumbs_cache_command()
-    {
-        $this->assertAppHasCommand(CacheBreadcrumbsCommand::class);
-    }
-
-    /** @test */
-    public function the_provider_can_register_breadcrumbs_cache_clear_command()
-    {
-        $this->assertAppHasCommand(ClearBreadcrumbsCacheCommand::class);
-    }
-
-    /** @test */
-    public function the_provider_can_register_erickcomp_breadcrumbs_component()
-    {
-        $this->assertAppHasComponent('erickcomp-breadcrumbs');
-    }
-
-    /** @test */
-    public function the_provider_can_register_crumb_basket_class_as_singleton()
-    {
-        $msg = 'Class "' . CrumbBasket::class . '" was not registered as singleton in the app container';
-        $this->assertTrue($this->app->isShared(CrumbBasket::class), $msg);
-    }
-
-    /** @test */
-    public function the_provider_can_register_publish_the_config_file()
-    {
-        $configFile = config_path(self::CONFIG_FILE);
-
-        if (File::exists($configFile)) {
-            File::move($configFile, "$configFile.bkp");
+        if ($registeredBreadcrumbs === null) {
+            $registeredBreadcrumbs = $this->getRegisteredCrumbs();
         }
 
-        $this->artisan('vendor:publish', [
-            '--provider' => BreadcrumbsAttributeServiceProvider::class,
-            '--tag' => 'config',
-        ])->assertOk();
-
-        $msg = 'The ServiceProvider did not publish the package config file';
-        $this->assertFileExists($configFile, $msg);
-
-        if (File::exists("$configFile.bkp")) {
-            File::move("$configFile.bkp", $configFile);
-        }
+        $msg = "Breadcrumbs \"$name\" is not in the Crumb Basket";
+        $this->assertTrue(\array_key_exists($name, $registeredBreadcrumbs), $msg);
     }
 
-    protected function assertAppHasCommand(string $commandClass)
+    protected function getRegisteredCrumbs(): array
     {
-        static $commandClasses = null;
+        $this->registerTestBreadcrumbs();
+        $basket = BreadcrumbsTrail::getCrumbBasket();
+        $basket->gatherCrumbsOntoBasket();
 
-        if ($commandClasses === null) {
-            $commandClasses = \array_map(fn($v) => is_object($v) ? get_class($v) : null, Artisan::all());
-        }
-
-        $msg = "Command \"$commandClass\" is not registered in the app";
-        $this->assertTrue(\in_array($commandClass, $commandClasses), $msg);
-    }
-
-    protected function assertAppHasComponent(string $componentAlias)
-    {
-        static $componentAliases = null;
-
-        if ($componentAliases === null) {
-            $componentAliases = Blade::getClassComponentAliases();
-        }
-
-        $msg = "Component with alias \"$componentAlias\" is not registered in the app";
-        $this->assertTrue(\array_key_exists($componentAlias, $componentAliases), $msg);
+        return (function () {
+            return $this->crumbs;
+        })->call($basket);
     }
 }

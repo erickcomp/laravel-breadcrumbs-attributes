@@ -22,25 +22,6 @@ class ServiceProviderTest extends TestCase
         parent::setUp();
     }
 
-    protected function getPackageProviders($app)
-    {
-        return [
-            BreadcrumbsAttributeServiceProvider::class,
-        ];
-    }
-
-    /**
-     * Resolve application core configuration implementation.
-     *
-     * @param  \Illuminate\Foundation\Application  $app
-     *
-     * @return void
-     */
-    protected function resolveApplicationConfiguration($app)
-    {
-        parent::resolveApplicationConfiguration($app);
-    }
-
     /** @test */
     public function the_provider_can_register_application_macro_getCachedErickCompLaravelAttributesBreadcrumbsPath()
     {
@@ -94,6 +75,25 @@ class ServiceProviderTest extends TestCase
         if (File::exists("$configFile.bkp")) {
             File::move("$configFile.bkp", $configFile);
         }
+    }
+
+    protected function getPackageProviders($app)
+    {
+        return [
+            BreadcrumbsAttributeServiceProvider::class,
+        ];
+    }
+
+    /**
+     * Resolve application core configuration implementation.
+     *
+     * @param  \Illuminate\Foundation\Application  $app
+     *
+     * @return void
+     */
+    protected function resolveApplicationConfiguration($app)
+    {
+        parent::resolveApplicationConfiguration($app);
     }
 
     protected function assertAppHasCommand(string $commandClass)
