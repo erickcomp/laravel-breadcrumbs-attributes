@@ -1,13 +1,5 @@
 # Use PHP 8 attributes to create breadcrumbs for controllers actions in a Laravel app
 
-@TODO:
-
-~~1 - Rewrite this README (Currently it's Spatie's Laravel routes attributes one)~~
-
-~~2 - Write (booooooring) tests;~~
-
----
-
 This package provides PHP 8 Attribute classes to automatically create breadcrumbs for your controller actions.
 This package was inspired by Spatie's wonderful [Laravel Routes Attributes](https://github.com/spatie/laravel-route-attributes#use-php-8-attributes-to-register-routes-in-a-laravel-app).
 In fact, a big portion of the "controller methods discovery" was copied from Laravel Routes Attributes package (Thanks for that, Spatie fellows!).

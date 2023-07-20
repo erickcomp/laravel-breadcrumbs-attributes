@@ -79,7 +79,16 @@ class CrumbBasket
             $crumbsTrail[] = $currentCrumb;
 
             $currentCrumbName = $currentCrumb?->crumbData?->parent;
-            $currentCrumb = $this->getCrumbByName($currentCrumbName);
+
+            if ($currentCrumbName !== null) {
+                $currentCrumb = $this->getCrumbByName($currentCrumbName);
+
+                if ($currentCrumb === null) {
+                    $errMsg = "Error building breadcrumb trail: Could not find crumb for the name \"$currentCrumbName\"";
+    
+                    throw new \LogicException($errMsg);
+                }
+            }
         } while ($currentCrumbName !== null);
 
         return \array_reverse($crumbsTrail);

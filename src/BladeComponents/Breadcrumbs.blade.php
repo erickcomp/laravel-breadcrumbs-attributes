@@ -4,6 +4,8 @@
             <a href="{{ $crumb->url }}">{{ $crumb->label }}</a>
         </li>
     @else
-        <li @class([$class, $activeClass => $loop->last])>{{ $crumb->label }}</li>
+        <li @class([$class, $activeClass => $loop->last])>
+            {{ $crumb->label }}
+        </li>
     @endif
 @endforeach

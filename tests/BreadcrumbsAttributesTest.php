@@ -6,18 +6,10 @@ use Closure;
 use ErickComp\BreadcrumbAttributes\CrumbBasket;
 use ErickComp\BreadcrumbAttributes\Facades\BreadcrumbsTrail;
 use ErickComp\BreadcrumbAttributes\Providers\BreadcrumbsAttributeServiceProvider;
-use ErickComp\BreadcrumbAttributes\Commands\CacheBreadcrumbsCommand;
-use ErickComp\BreadcrumbAttributes\Commands\ClearBreadcrumbsCacheCommand;
 use ErickComp\BreadcrumbAttributes\Tests\TestClasses\Controllers\ControllerWithoutSpatieRoutes;
-use ErickComp\BreadcrumbAttributes\Tests\TestClasses\Models\FakeModel;
 use Illuminate\Routing\Middleware\SubstituteBindings;
-use Illuminate\Routing\Router;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
-use URL;
-
+use Illuminate\Support\Facades\URL;
 
 class BreadcrumbsAttributesTest extends TestCase
 {
@@ -204,6 +196,18 @@ class BreadcrumbsAttributesTest extends TestCase
         $this->assertBreadcrumbIsRegistered('home.spatie-get-simple-named');
     }
 
+    /** @test */
+    public function it_render_a_breadcrumb_trail_using_the_component()
+    {
+        $response = $this->get('action-param/DummyParamInSegment/render-component');
+        $urlToRoot = URL::to('/');
+        
+        $stubFile = __DIR__ . \DIRECTORY_SEPARATOR . __FUNCTION__ . '.stub';
+        $expectedHtml = \sprintf(\file_get_contents($stubFile), $urlToRoot, $urlToRoot);
+
+        $response->assertContent($expectedHtml);
+    }
+
     protected function getPackageProviders($app)
     {
         return [
@@ -222,7 +226,8 @@ class BreadcrumbsAttributesTest extends TestCase
             'action-param-method' => 'aActionParamMethod',
             'action-param-property' => 'aActionParamProperty',
             'concat-label' => 'aConcatLabel',
-            'eval-crumb/{param1}/{fake_model?}' => 'aEvalCrumb'
+            'eval-crumb/{param1}/{fake_model?}' => 'aEvalCrumb',
+            'action-param/{param1}/render-component' => 'aReturnComponent'
         ];
 
         foreach ($routesStrs as $route => $method) {

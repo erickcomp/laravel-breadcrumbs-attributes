@@ -12,6 +12,8 @@ use ErickComp\BreadcrumbAttributes\Tests\TestClasses\Models\FakeModel;
 use ErickComp\BreadcrumbAttributes\Tests\TestClasses\SendsBreadcrumbsAsJsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\View;
 
 class ControllerWithoutSpatieRoutes
 {
@@ -66,5 +68,12 @@ class ControllerWithoutSpatieRoutes
     //public function aEvalCrumb(string $param1, string $fakeModel)
     {
         return $this->sendsBreadcrumbsAsJsonResponse();
+    }
+
+    
+    #[Breadcrumb('Last Crumb', parent: 'home.aActionParam', name: 'home.aActionParam.aLastCrumb')]
+    public function aReturnComponent()
+    {
+        return Blade::render('<x-erickcomp-breadcrumbs />');
     }
 }
