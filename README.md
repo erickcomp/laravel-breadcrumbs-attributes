@@ -4,7 +4,7 @@
 
 ~~1 - Rewrite this README (Currently it's Spatie's Laravel routes attributes one)~~
 
-2 - Write (booooooring) tests;
+~~2 - Write (booooooring) tests;~~
 
 ---
 
