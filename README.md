@@ -1,3 +1,9 @@
+<p align="center">
+    <a href="https://packagist.org/packages/erickcomp/laravel-breadcrumbs-attributes"><img src="https://img.shields.io/packagist/v/erickcomp/laravel-breadcrumbs-attributes" alt="Latest Stable Version"></a>
+    <a href="https://packagist.org/packages/erickcomp/laravel-breadcrumbs-attributes"><img src="https://img.shields.io/packagist/dt/erickcomp/laravel-breadcrumbs-attributes" alt="Total Downloads"></a>
+    <a href="https://packagist.org/packages/erickcomp/laravel-breadcrumbs-attributes"><img src="https://img.shields.io/packagist/l/erickcomp/laravel-breadcrumbs-attributes" alt="License"></a>
+</p>
+
 # Use PHP 8 attributes to create breadcrumbs for controllers actions in a Laravel app
 
 This package provides PHP 8 Attribute classes to automatically create breadcrumbs for your controller actions.
