@@ -19,13 +19,16 @@
         <include>
             <directory suffix=".php">./src</directory>
         </include>
+        <exclude>
+            <directory suffix=".blade.php">./src</directory>
+        </exclude>
         <report>
-            <html outputDirectory="build/coverage"/>
-            <text outputFile="build/coverage.txt"/>
-            <clover outputFile="build/logs/clover.xml"/>
+            <html outputDirectory="build/tests/coverage"/>
+            <text outputFile="build/tests/coverage.txt"/>
+            <clover outputFile="build/tests/logs/clover.xml"/>
         </report>
     </coverage>
     <logging>
-        <junit outputFile="build/report.junit.xml"/>
+        <junit outputFile="build/tests/report.junit.xml"/>
     </logging>
 </phpunit>

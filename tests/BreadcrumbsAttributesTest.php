@@ -156,7 +156,7 @@ class BreadcrumbsAttributesTest extends TestCase
                 'url' => URL::to('/')
             ],
             [
-                'label' => 'Concat part 1|Concat part 2',
+                'label' => 'Concat part 1|Concat part 2|Concat part 3',
                 'url' => URL::to('concat-label')
             ]
         ]);
@@ -201,7 +201,7 @@ class BreadcrumbsAttributesTest extends TestCase
     {
         $response = $this->get('action-param/DummyParamInSegment/render-component');
         $urlToRoot = URL::to('/');
-        
+
         $stubFile = __DIR__ . \DIRECTORY_SEPARATOR . __FUNCTION__ . '.stub';
         $expectedHtml = \sprintf(\file_get_contents($stubFile), $urlToRoot, $urlToRoot);
 

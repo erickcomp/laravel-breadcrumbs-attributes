@@ -10,6 +10,7 @@ use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\ConcatLabel;
 use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\EvalCrumb;
 use ErickComp\BreadcrumbAttributes\Tests\TestClasses\Models\FakeModel;
 use ErickComp\BreadcrumbAttributes\Tests\TestClasses\SendsBreadcrumbsAsJsonResponse;
+use ErickComp\BreadcrumbAttributes\Tests\TestClasses\Util\StringableImpl;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Blade;
@@ -50,7 +51,7 @@ class ControllerWithoutSpatieRoutes
     }
 
     #[Breadcrumb(
-        label: new ConcatLabel('Concat part 1', '|', 'Concat part 2'),
+        label: new ConcatLabel('Concat part 1', '|', 'Concat part 2', new StringableImpl('|Concat part 3')),
         parent: 'home',
         name: 'home.aConcatLabel'
     )]
@@ -70,7 +71,7 @@ class ControllerWithoutSpatieRoutes
         return $this->sendsBreadcrumbsAsJsonResponse();
     }
 
-    
+
     #[Breadcrumb('Last Crumb', parent: 'home.aActionParam', name: 'home.aActionParam.aLastCrumb')]
     public function aReturnComponent()
     {
