@@ -186,7 +186,7 @@ class CrumbBasket
 
         $fileContent = \file_get_contents($filePath);
 
-        $regexPattern = '/namespace\s+([^;]+).*class\s+([\w]+)/s';
+        $regexPattern = '/namespace\s+([^;|{|\s]+).*class\s+([\w]+)/s';
         preg_match($regexPattern, $fileContent, $matches);
 
         $namespace = isset($matches[1]) ? trim($matches[1]) : '';
