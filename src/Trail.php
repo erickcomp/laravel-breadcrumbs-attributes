@@ -65,6 +65,16 @@ class Trail
 
         $this->addAuxCrumbToTrail($breadcrumbAttr->auxCrumbBefore, $controllerActionParams);
 
+        // alterar aqui para somente permitir 2 possibilidades:
+        // 1 - string: que pode ser:
+        //   1.1 - String comum
+        //   1.2 - String com parametro: {parametro} 
+        //   1.3 - String usando property de um parametro: {parametro}->propName
+        //   1.4 - String usando metodo de um parametro com a seguinte sintaxe:
+        //         {requestParam}->method2();
+        //         {requestParam}->method(int:1, bool:true, null:null, float:3.14, string:paramN, {otherRequestParam})
+        // 2 - Um array, onde cada posição é uma string que será avaliada de acordo com o item 1.
+        //     Estas strings serão concatenadas para formar o breadcrumb.
         $crumbLabel = $breadcrumbAttr->label instanceof LabelResolver
             ? $this->resolveLabelResolver($breadcrumbAttr->label, $controllerActionParams)
             : (string) $breadcrumbAttr->label;

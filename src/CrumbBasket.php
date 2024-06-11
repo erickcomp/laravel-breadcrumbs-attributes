@@ -16,11 +16,13 @@ use Illuminate\Support\Arr;
 use Symfony\Component\Finder\Finder;
 
 use ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb;
+use ErickComp\BreadcrumbAttributes\Facades\FileBreadcrumb;
 
 class CrumbBasket
 {
     public const BREADCRUMBS_CONFIG_KEY = 'erickcomp-laravel-breadcrumbs-attributes';
     public const BREADCRUMBS_CONTROLLERS_DIRS_CONFIG_KEY = 'controller_directories';
+    public const BREADCRUMBS_FILES_CONFIG_KEY = 'breadcrumbs_files';
     public const BREADCRUMBS_CONTROLLERS_DIRS_FULL_CONFIG_KEY = self::BREADCRUMBS_CONFIG_KEY . '.' . self::BREADCRUMBS_CONTROLLERS_DIRS_CONFIG_KEY;
     public const BREADCRUMBS_DEFAULT_CONFIG_FILE = __DIR__ . \DIRECTORY_SEPARATOR . 'config' . \DIRECTORY_SEPARATOR . self::BREADCRUMBS_CONFIG_KEY . '.php';
     public const BREADCRUMBS_CACHE_FILE_KEY = 'ERICKCOMP_LARAVEL_BREADCRUMBS_ATTRIBUTES_CACHE';
@@ -51,7 +53,8 @@ class CrumbBasket
             return;
         }
 
-        $this->gatherCrumbsOfDirectories($this->getControllersDirectories());
+        $this->gatherCrumbsFromDirectories($this->getControllersDirectories());
+        $this->gatherCrumbsFromFiles($this->);
 
     }
 
@@ -85,7 +88,7 @@ class CrumbBasket
 
                 if ($currentCrumb === null) {
                     $errMsg = "Error building breadcrumb trail: Could not find crumb for the name \"$currentCrumbName\"";
-    
+
                     throw new \LogicException($errMsg);
                 }
             }
@@ -112,7 +115,18 @@ class CrumbBasket
         $this->fileSystem->delete($this->getCacheFilePath());
     }
 
-    protected function gatherCrumbsOfDirectories(string|array $directories): void
+    protected function gatherCrumbsFromDirectories(string|array $directories): void
+    {
+        $directories = Arr::wrap($directories);
+
+        $files = (new Finder())->files()->name('*.php')->in($directories)->sortByName();
+
+        // $this->reflCrumbsCache = [];
+        collect($files)->each(fn(SplFileInfo $file) => $this->gatherCrumbsOfFile($file));
+        // $this->reflCrumbsCache = [];
+    }
+
+    protected function gatherCrumbsFromFiles(string|array $directories): void
     {
         $directories = Arr::wrap($directories);
 
@@ -140,6 +154,18 @@ class CrumbBasket
                 Config::get(self::BREADCRUMBS_CONTROLLERS_DIRS_FULL_CONFIG_KEY, [])
             )
         );
+    }
+
+    protected function getBreadcrumbsFiles(): array
+    {
+        $files = Arr::wrap(config(static::BREADCRUMBS_CONFIG_KEY '.' .static::BREADCRUMBS_FILES_CONFIG_KEY))
+        foreach ($files as $file) {
+            if(\is_file($file)) {
+                require $file;
+            }
+        }
+
+        
     }
 
     protected function getSpatieRoutesAttributesControllersDirs()
