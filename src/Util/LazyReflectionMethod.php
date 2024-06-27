@@ -2,7 +2,7 @@
 
 namespace ErickComp\BreadcrumbAttributes\Util;
 
-class LazyReflectionMethod
+class LazyReflectionMethod implements LazyReflectionMethodInterface
 {
     public readonly string $class;
     public readonly string $method;
@@ -30,9 +30,14 @@ class LazyReflectionMethod
         $this->__construct($data['class'], $data['method']);
     }
 
+    public function isInitialized(): bool
+    {
+        return isset($this->reflMethod);
+    }
+
     public function get(): \ReflectionMethod
     {
-        if (!isset($this->reflMethod)) {
+        if (!$this->isInitialized()) {
             $this->reflMethod = new \ReflectionMethod($this->class, $this->method);
         }
 

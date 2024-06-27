@@ -9,12 +9,11 @@ use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\LabelResolver;
 class Breadcrumb
 {
     public function __construct(
-        public string|\Stringable|LabelResolver $label,
+        public string|\Stringable $label,
         public string|\Stringable|null $parent = null,
         public string|\Stringable|null $name = null,
-        public string|\Stringable|LabelResolver|null $auxCrumbBefore = null,
-        public string|\Stringable|LabelResolver|null $auxCrumbAfter = null //,
-        //public string|\Stringable|null $routeName = null
+        public string|\Stringable|null $auxCrumbBefore = null,
+        public string|\Stringable|null $auxCrumbAfter = null
     ) {
     }
 }

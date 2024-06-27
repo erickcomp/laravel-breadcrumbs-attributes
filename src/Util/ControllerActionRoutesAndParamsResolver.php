@@ -21,7 +21,9 @@ class ControllerActionRoutesAndParamsResolver
 
     /**
      *
-     * @todo Maybe make the route optional by leveraging the "action" method from url generator and use the already stored metadata to generate urls instead of the route name
+     * @todo Maybe make the route optional by leveraging the "action" method from
+     * url generator and use the already stored metadata
+     * to generate urls instead of the route name
      * 
      * @param string $route
      * @return string
