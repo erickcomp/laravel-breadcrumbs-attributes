@@ -34,9 +34,9 @@ class Crumb
     public function getControllerAction(): string
     {
         //$controllerAction = $this->reflControllerAction->class . '@' . $this->reflControllerAction->method;
-        $controllerClass = $this->reflControllerAction->get()->getDeclaringClass();
-        $controllerMethod = $this->reflControllerAction->get()->getName();
-        $controllerAction =  "$controllerClass@$controllerMethod";
+        $controllerClass = $this->reflControllerAction->getClass();
+        $controllerMethod = $this->reflControllerAction->getMethod();
+        $controllerAction = "$controllerClass@$controllerMethod";
 
         if (\str_starts_with($controllerAction, '\\')) {
             $controllerAction = \substr($controllerAction, 1);

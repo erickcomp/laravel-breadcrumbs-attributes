@@ -15,6 +15,16 @@ class LazyReflectionMethodFromRouteName implements LazyReflectionMethodInterface
     ) {
     }
 
+    public function getClass(): string
+    {
+        return $this->get()->getDeclaringClass()->getName();
+    }
+
+    public function getMethod(): string
+    {
+        return $this->get()->getName();
+    }
+
     public function __serialize()
     {
         return [

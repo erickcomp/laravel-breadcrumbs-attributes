@@ -60,7 +60,7 @@ class CrumbBasket
         }
 
         $this->gatherCrumbsFromDirectories($this->getControllersDirectories());
-        $this->gatherAttributelessCrumbsFromFiles($this->getNonAttributesCrumbsFiles());
+        $this->gatherAttributelessCrumbsFromFiles($this->getAttributelessCrumbsFiles());
     }
 
     /**
@@ -71,7 +71,7 @@ class CrumbBasket
      */
     public function putCrumbForRouteName(
         string|\Stringable $routeName,
-        string|\Stringable $label,
+        string|\Stringable|array $label,
         string|\Stringable|null $parent = null,
         string|\Stringable|null $name = null,
         string|\Stringable|null $auxCrumbBefore = null,
@@ -105,7 +105,7 @@ class CrumbBasket
      */
     public function putCrumbForControllerAction(
         string|array $controllerAction,
-        string|\Stringable $label,
+        string|\Stringable|array $label,
         string|\Stringable|null $name,
         string|\Stringable|null $parent = null,
         string|\Stringable|null $auxCrumbBefore = null,
@@ -215,7 +215,7 @@ class CrumbBasket
     }
 
     /** @return string[] */
-    protected function getNonAttributesCrumbsFiles(): array
+    protected function getAttributelessCrumbsFiles(): array
     {
         return config(self::BREADCRUMBS_FILES_FULL_CONFIG_KEY, []);
     }
@@ -441,16 +441,13 @@ class CrumbBasket
         // }
 
         $controllerAction = static::normalizeControllerAction($controllerAction);
-
-        dd($this->crumbs);
-
         foreach ($this->crumbs as $crumb) {
-            dump($crumb->getControllerAction(), $controllerAction);
-
             if ($crumb->getControllerAction() === $controllerAction) {
                 return $crumb;
             }
         }
+
+        dd($this->crumbs);
 
         return null;
     }

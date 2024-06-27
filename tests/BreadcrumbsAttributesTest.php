@@ -272,7 +272,7 @@ class BreadcrumbsAttributesTest extends TestCase
             $this->$method(...$args);
         };
 
-        $crumbBasketCaller->call($crumbBasket, 'gatherCrumbsOfDirectories', [$testDir]);
+        $crumbBasketCaller->call($crumbBasket, 'gatherCrumbsFromDirectories', [$testDir]);
 
         $this->app->singleton(CrumbBasket::class, function () use ($crumbBasket) {
             return $crumbBasket;
