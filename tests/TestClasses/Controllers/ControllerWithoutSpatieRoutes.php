@@ -32,26 +32,26 @@ class ControllerWithoutSpatieRoutes
         return $this->sendsBreadcrumbsAsJsonResponse();
     }
 
-    #[Breadcrumb(new ActionParam('param1'), parent: 'home', name: 'home.aActionParam')]
+    #[Breadcrumb('{param1}', parent: 'home', name: 'home.aActionParam')]
     public function aActionParam(string $param1)
     {
         return $this->sendsBreadcrumbsAsJsonResponse();
     }
 
-    #[Breadcrumb(new ActionParamMethod('request', 'fullUrl'), parent: 'home', name: 'home.aActionParamMethod')]
+    #[Breadcrumb('{request}->fullUrl()', parent: 'home', name: 'home.aActionParamMethod')]
     public function aActionParamMethod(Request $request)
     {
         return $this->sendsBreadcrumbsAsJsonResponse();
     }
 
-    #[Breadcrumb(new ActionParamProperty('route', 'uri'), parent: 'home', name: 'home.aActionParamProperty')]
+    #[Breadcrumb('{route}->uri', parent: 'home', name: 'home.aActionParamProperty')]
     public function aActionParamProperty(Route $route)
     {
         return $this->sendsBreadcrumbsAsJsonResponse();
     }
 
     #[Breadcrumb(
-        label: new ConcatLabel('Concat part 1', '|', 'Concat part 2', new StringableImpl('|Concat part 3')),
+        label: ['Concat part 1', '|', 'Concat part 2', new StringableImpl('|Concat part 3')],
         parent: 'home',
         name: 'home.aConcatLabel'
     )]
@@ -59,18 +59,6 @@ class ControllerWithoutSpatieRoutes
     {
         return $this->sendsBreadcrumbsAsJsonResponse();
     }
-
-    #[Breadcrumb(
-        label: new EvalCrumb('return $param1 . ": " . \strtoupper($fakeModel->name);'),
-        parent: 'home',
-        name: 'home.aEvalCrumb'
-    )]
-    public function aEvalCrumb(string $param1, FakeModel $fakeModel)
-    //public function aEvalCrumb(string $param1, string $fakeModel)
-    {
-        return $this->sendsBreadcrumbsAsJsonResponse();
-    }
-
 
     #[Breadcrumb('Last Crumb', parent: 'home.aActionParam', name: 'home.aActionParam.aLastCrumb')]
     public function aReturnComponent()
