@@ -36,19 +36,26 @@ This is the contents of the published config file:
 ```php
 <?php
 
+use ErickComp\BreadcrumbAttributes\Providers\BreadcrumbsAttributeServiceProvider;
+
 return [
     'controller_directories' => [
         app_path('Http/Controllers')
+    ],
+    'breadcrumbs_files' => [
+        BreadcrumbsAttributeServiceProvider::defaultAttributelessBreadcrumbsFile()
     ]
 ];
 
+
 ```
 
-Here you can customize the directories that will be scanned at your will.
+Here you can customize the directories that will be scanned at your will and customize the file(s) that can contain Breadcrumbs declarations that do not use attributes (are done like standard route declarations).
 
 ## Usage
 
-The package provides a main attribute (`\ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb`) that can handle simple breadcrumbs labels. It also provides some other attributes that are used to handle breadcrumbs that require information that are available to the controller method you want to create a breadcrumb trail.
+The package provides an attribute (`\ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb`) that can handle breadcrumbs labels.
+It can even handle breadcrumbs that require information that are available to the controller method you want to create a breadcrumb trail.
 
 The Breadcrumb attribute can hold the following info:
 
@@ -108,7 +115,7 @@ array(6) {
 ```
 
 ### Creating complex breadcrumbs based on the Request data
-You have all the arguments passed to the method to which the breadcrumb is attached at your disposal in order to generate the ideal label for your breadcrumb. It's done by using some aux attributes. Here's an example:
+You have all the arguments passed to the method to which the breadcrumb is attached at your disposal in order to generate the ideal label for your breadcrumb. It's done by using the same patterns used on route definitions (enclosing route/controller methods on curly braces) to acccess the route parameters on the breadcrumb label. Here's an example:
 
 You have worked the routes definitions this way:
 
@@ -125,8 +132,6 @@ You would need to define your breadcrumbs somewhat this way:
 Controller with breadcrumbs attributes:
 ```php
 use ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb;
-use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\Breadcrumb;
-use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\ActionParamProperty;
 
 class MyController
 {
@@ -140,11 +145,7 @@ class MyController
     {
     }
 
-    #[Breadcrumb(
-        label: new ConcatLabel('Showing user: ', '"', new ActionParamProperty('user', 'name'), '"'),
-        parent: 'home.users-list',
-        name: 'home.user-list'
-    )]
+    #[Breadcrumb(label: ['Showing user: ', '"', '{user}->name','"'], parent: 'home.users-list', name: 'home.user-list')]
     public function showUser(UserModel $user)
     {
     }
@@ -176,12 +177,13 @@ array(6) {
     ["url"]=>
     string(43) "http://localhost/users/show/52"
   }
-```
-### The route parameter resolution
-The breadcrumbs links deal with the url params and generate the url's using them, so you (most probably) won't have to deal with url generation for your breadcrumbs. All the url parameters are also passed to the label resolvers
 
-### Label Resolvers
-Label resolvers are the aux classes that you can use on the Breadcrumb constructor to create more complex breadcrumb labels or to add aux breadcrumbs before or after you breadcrumb. They should be self-explanatory, like the "ActionParamProperty" that was used in the example above
+```
+
+Note that the label is an array with string. All the items of the array are concatenated to form the final crumb.
+
+### The route parameter resolution
+The breadcrumbs links deal with the url params and generate the url's using them, so you (most probably) won't have to deal with url generation for your breadcrumbs.
 
 ### Aux breadcrumbs
 Aux breadcrumbs are used to create "logical" breadcrumbs. They can be used to express menus, for example.
@@ -204,8 +206,6 @@ In order to insert this "Admin" crumb, you could rewrite the above example like 
 
 ```php
 use ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb;
-use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\Breadcrumb;
-use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\ActionParamProperty;
 
 class MyController
 {
@@ -219,8 +219,7 @@ class MyController
     {
     }
 
-    #[Breadcrumb(
-        label: new ConcatLabel('Showing user: ', '"', new ActionParamProperty('user', 'name'), '"'),
+    #[Breadcrumb(label: ['Showing user: ', '"', '{user}->name', '"'],
         parent: 'home.users-list',
         name: 'home.user-list',
         auxCrumbBefore: 'Admin'
@@ -233,15 +232,15 @@ class MyController
 
 And the "Admin" crumb will be added to the breadcrumbs trail.
 
-You can use `ConcatLabel` and the other Aux breadcrumbs classes here as well:
+You can pass an array to the other Aux breadcrumbs param as well:
 
 ```php
 
 #[Breadcrumb(
-    label: new ConcatLabel('Showing user: ', '"', new ActionParamProperty('user', 'name'), '"'),
+    label: ['Showing user: ', '"', '{user}->name', '"'],
     parent: 'home.users-list',
     name: 'home.user-show',
-    auxCrumbBefore: new ConcatLabel('A', 'd', 'm', 'i', 'n')
+    auxCrumbBefore: ['A', 'd', 'm', 'i', 'n']
 )]
 public function showUser(UserModel $user)
 {
@@ -259,10 +258,7 @@ Example:
 
 ```php
 use ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb;
-use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\Breadcrumb;
-use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\ActionParamProperty;
 use Spatie\RouteAttributes\Attributes\Get;
-
 
 class MyController
 {
@@ -280,10 +276,7 @@ class MyController
 
     
     #[Get('/users/show/{user}', name: 'home.users-list.user-show')]
-    #[Breadcrumb(
-        label: new ConcatLabel('Showing user: ', '"', new ActionParamProperty('user', 'name'), '"'),
-        parent: 'home.users-list'
-    )]
+    #[Breadcrumb(label: ['Showing user: ', '"', '{user}->name', '"'], parent: 'home.users-list')]
     public function showUser(UserModel $user)
     {
     }
@@ -321,6 +314,31 @@ and
 ```bash
 erickcomp:laravel-breadcrumbs-attributes:clear-cache
 ```
+
+# Attributeless breadcrumbs
+If, for some reason you need declare breadcrumbs without using controller attributes, you can leverage the ```CrumbBasket``` facade.
+It has methods to "put" crumbs into basket. By default, you can define breadcrumbs this way on the file ``` routes/breadcrumbs.php``` .
+It can be changed by publishing the config file and changing the "breadcrumbs_files" entry. In this file, you can define breadcrumbs like:
+
+```php
+// Laravel way for expressing controller actions
+CrumbBasket::putCrumbForControllerAction('App\Http\MyController@myMethod1', 'My Method 1', 'start.my-method1', 'start');
+
+// Array callable syntax with using string class name
+CrumbBasket::putCrumbForControllerAction(['App\Http\MyController', 'myMethod2'], 'My Method 2', 'start.my-method2', 'start');
+
+// Array callable syntax with using ::class "constant" to access class name
+CrumbBasket::putCrumbForControllerAction([\App\Http\MyController::class, 'myMethod3'], 'My Method 3', 'start.my-method3', 'start');
+
+// Route name will be used as breacrumb name
+CrumbBasket::putCrumbForRouteName('my-route-1', 'My Method 3', 'start');
+```
+
+You can manually create this ```routes/breadcrumbs.php``` file or you can use the command ```php artisan vendor:publish --tag=attributeless-breadcrumbs```
+
+## Version 1
+
+The first version of this package used other attribute classes to access the route/controller parameters. It worked well, but was too verbose. Now, all the features provided by those classes were migrated to the new ```{routeParam}``` syntax, that's more aligned to the Laravel's syntax to express route parameters on the route declarations.
 
 ## Credits
 
