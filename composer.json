@@ -17,9 +17,8 @@
         }
     ],
     "require": {
-        "php": "^8.0",
-        "illuminate/contracts": "^8.70|^9.0|^10.0|^11.0",
-        "nesbot/carbon": "^2.63"
+        "php": "^8.1",
+        "illuminate/contracts": "^8.70|^9.0|^10.0|^11.0"
     },
     "suggest": {
         "spatie/laravel-route-attributes": "Allows route name binding (route name is used as the Breadcrumb name if you don't provide one)"
@@ -27,7 +26,7 @@
     "require-dev": {
         "orchestra/testbench": "^6.25|^7.0|^8.0",
         "phpunit/phpunit": "^9.5.10",
-        "spatie/laravel-route-attributes": "^1.18"
+        "spatie/laravel-route-attributes": "^1.22"
     },
     "autoload": {
         "psr-4": {

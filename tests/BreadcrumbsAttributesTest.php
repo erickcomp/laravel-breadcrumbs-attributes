@@ -163,29 +163,6 @@ class BreadcrumbsAttributesTest extends TestCase
     }
 
     /** @test */
-    public function it_can_register_a_breadcrumb_with_an_eval_crumb()
-    {
-        $this->assertBreadcrumbIsRegistered('home.aEvalCrumb');
-    }
-
-    /** @test */
-    public function it_can_generate_a_breadcrumb_with_an_eval_crumb()
-    {
-        $response = $this->get('eval-crumb/huehuehue/ErickComp');
-
-        $response->assertExactJson([
-            [
-                'label' => 'Home',
-                'url' => URL::to('/')
-            ],
-            [
-                'label' => 'huehuehue: ERICKCOMP',
-                'url' => URL::to('eval-crumb/huehuehue/ErickComp')
-            ]
-        ]);
-    }
-
-    /** @test */
     public function it_can_register_a_breadcrumb_using_the_spatie_route_attribute_name()
     {
         $this->assertBreadcrumbIsRegistered('home.spatie-get-method-no-name');
@@ -272,7 +249,7 @@ class BreadcrumbsAttributesTest extends TestCase
             $this->$method(...$args);
         };
 
-        $crumbBasketCaller->call($crumbBasket, 'gatherCrumbsOfDirectories', [$testDir]);
+        $crumbBasketCaller->call($crumbBasket, 'gatherCrumbsFromDirectories', [$testDir]);
 
         $this->app->singleton(CrumbBasket::class, function () use ($crumbBasket) {
             return $crumbBasket;

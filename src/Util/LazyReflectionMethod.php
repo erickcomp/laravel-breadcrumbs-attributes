@@ -2,11 +2,12 @@
 
 namespace ErickComp\BreadcrumbAttributes\Util;
 
-class LazyReflectionMethod
+class LazyReflectionMethod implements LazyReflectionMethodInterface
 {
     public readonly string $class;
     public readonly string $method;
     private \ReflectionMethod $reflMethod;
+    
     public function __construct(string $class, string $method)
     {
         if (!\str_starts_with($class, '\\')) {
@@ -15,6 +16,16 @@ class LazyReflectionMethod
 
         $this->class = $class;
         $this->method = $method;
+    }
+
+    public function getClass(): string
+    {
+        return $this->class;
+    }
+
+    public function getMethod(): string
+    {
+        return $this->method;
     }
 
     public function __serialize()
@@ -30,9 +41,14 @@ class LazyReflectionMethod
         $this->__construct($data['class'], $data['method']);
     }
 
+    public function isInitialized(): bool
+    {
+        return isset($this->reflMethod);
+    }
+
     public function get(): \ReflectionMethod
     {
-        if (!isset($this->reflMethod)) {
+        if (!$this->isInitialized()) {
             $this->reflMethod = new \ReflectionMethod($this->class, $this->method);
         }
 

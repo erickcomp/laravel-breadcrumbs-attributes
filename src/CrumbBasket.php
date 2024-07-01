@@ -2,26 +2,30 @@
 
 namespace ErickComp\BreadcrumbAttributes;
 
+use ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb;
+use ErickComp\BreadcrumbAttributes\Providers\BreadcrumbsAttributeServiceProvider;
 use ErickComp\BreadcrumbAttributes\Util\LazyReflectionMethod;
+use ErickComp\BreadcrumbAttributes\Util\LazyReflectionMethodFromRouteName;
+use ErickComp\BreadcrumbAttributes\Util\LazyReflectionMethodInterface;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Application;
 use Illuminate\Routing\Route;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
-use SplFileInfo;
+use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionMethod;
-use ReflectionAttribute;
+use SplFileInfo;
 
-use Illuminate\Support\Arr;
 use Symfony\Component\Finder\Finder;
-
-use ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb;
 
 class CrumbBasket
 {
     public const BREADCRUMBS_CONFIG_KEY = 'erickcomp-laravel-breadcrumbs-attributes';
     public const BREADCRUMBS_CONTROLLERS_DIRS_CONFIG_KEY = 'controller_directories';
     public const BREADCRUMBS_CONTROLLERS_DIRS_FULL_CONFIG_KEY = self::BREADCRUMBS_CONFIG_KEY . '.' . self::BREADCRUMBS_CONTROLLERS_DIRS_CONFIG_KEY;
+    public const BREADCRUMBS_FILES_CONFIG_KEY = 'breadcrumbs_files';
+    public const BREADCRUMBS_FILES_FULL_CONFIG_KEY = self::BREADCRUMBS_CONFIG_KEY . '.' . self::BREADCRUMBS_FILES_CONFIG_KEY;
     public const BREADCRUMBS_DEFAULT_CONFIG_FILE = __DIR__ . \DIRECTORY_SEPARATOR . 'config' . \DIRECTORY_SEPARATOR . self::BREADCRUMBS_CONFIG_KEY . '.php';
     public const BREADCRUMBS_CACHE_FILE_KEY = 'ERICKCOMP_LARAVEL_BREADCRUMBS_ATTRIBUTES_CACHE';
     public const BREADCRUMBS_CACHE_FILE_DEFAULT = 'cache/erickcomp-laravel-breadcrumbs-attributes';
@@ -29,6 +33,10 @@ class CrumbBasket
 
     /** @var array<string, Crumb> $crumbs */
     protected array $crumbs = [];
+
+    /** @var array<string, Crumb> $crumbs */
+    protected array $nonAttributeCrumbs = [];
+
     // private array $reflCrumbsCache;
     private const SPATIE_ROUTE_ATTRIBUTE_FQN = '\\Spatie\\RouteAttributes\\Attributes\\Route';
 
@@ -51,8 +59,74 @@ class CrumbBasket
             return;
         }
 
-        $this->gatherCrumbsOfDirectories($this->getControllersDirectories());
+        $this->gatherCrumbsFromDirectories($this->getControllersDirectories());
+        $this->gatherAttributelessCrumbsFromFiles($this->getAttributelessCrumbsFiles());
+    }
 
+    /**
+     * This method must accept all the arguments of the
+     * @see {\ErickCompBreadcrumbAttributesAttributesBreadcrumb:: __construct} method
+     * plus a route name. If the name is ommited, the route name will be used on the breadcrumb
+     *
+     */
+    public function putCrumbForRouteName(
+        string|\Stringable $routeName,
+        string|\Stringable|array $label,
+        string|\Stringable|null $parent = null,
+        string|\Stringable|null $name = null,
+        string|\Stringable|null $auxCrumbBefore = null,
+        string|\Stringable|null $auxCrumbAfter = null
+    ) {
+        //$route = $this->router->getRoutes()->getByName($routeName);   
+
+        if ($name === null) {
+            $name = $routeName;
+        }
+
+        $crumbAttrInstance = new Breadcrumb(
+            $label,
+            $parent,
+            $name,
+            $auxCrumbBefore,
+            $auxCrumbAfter
+        );
+
+        $this->addFromBreadcrumbAttributeInstanceAndLazyReflectionMethod(
+            $crumbAttrInstance,
+            new LazyReflectionMethodFromRouteName($routeName),
+        );
+    }
+
+    /**
+     * This method must accept all the arguments of the
+     * @see {\ErickCompBreadcrumbAttributesAttributesBreadcrumb:: __construct} method
+     * plus a Controller Action
+     *
+     */
+    public function putCrumbForControllerAction(
+        string|array $controllerAction,
+        string|\Stringable|array $label,
+        string|\Stringable|null $name,
+        string|\Stringable|null $parent = null,
+        string|\Stringable|null $auxCrumbBefore = null,
+        string|\Stringable|null $auxCrumbAfter = null
+    ) {
+        $crumbAttrInstance = new Breadcrumb(
+            $label,
+            $parent,
+            $name,
+            $auxCrumbBefore,
+            $auxCrumbAfter
+        );
+
+        $controllerAction = static::normalizeControllerAction($controllerAction);
+        [$controllerClass, $controllerMethod] = \explode('@', $controllerAction);
+        $lazyReflMethod = new LazyReflectionMethod($controllerClass, $controllerMethod);
+
+        $this->addFromBreadcrumbAttributeInstanceAndLazyReflectionMethod(
+            $crumbAttrInstance,
+            $lazyReflMethod
+        );
     }
 
     /**
@@ -85,7 +159,7 @@ class CrumbBasket
 
                 if ($currentCrumb === null) {
                     $errMsg = "Error building breadcrumb trail: Could not find crumb for the name \"$currentCrumbName\"";
-    
+
                     throw new \LogicException($errMsg);
                 }
             }
@@ -112,7 +186,7 @@ class CrumbBasket
         $this->fileSystem->delete($this->getCacheFilePath());
     }
 
-    protected function gatherCrumbsOfDirectories(string|array $directories): void
+    protected function gatherCrumbsFromDirectories(string|array $directories): void
     {
         $directories = Arr::wrap($directories);
 
@@ -121,6 +195,29 @@ class CrumbBasket
         // $this->reflCrumbsCache = [];
         collect($files)->each(fn(SplFileInfo $file) => $this->gatherCrumbsOfFile($file));
         // $this->reflCrumbsCache = [];
+    }
+
+    protected function gatherAttributelessCrumbsFromFiles(string|array $files): void
+    {
+        $files = Arr::wrap($files);
+
+        foreach ($files as $file) {
+            if (\is_file($file)) {
+                include_once $file;
+
+                continue;
+            }
+
+            if (\realpath($file) !== \realpath(BreadcrumbsAttributeServiceProvider::defaultAttributelessBreadcrumbsFile())) {
+                throw new \RuntimeException("File [$file] which should contain attributeless breadcrumb definitions does not exist");
+            }
+        }
+    }
+
+    /** @return string[] */
+    protected function getAttributelessCrumbsFiles(): array
+    {
+        return config(self::BREADCRUMBS_FILES_FULL_CONFIG_KEY, []);
     }
 
     protected function gatherCrumbsOfFile(SplFileInfo $file): void
@@ -140,6 +237,11 @@ class CrumbBasket
                 Config::get(self::BREADCRUMBS_CONTROLLERS_DIRS_FULL_CONFIG_KEY, [])
             )
         );
+    }
+
+    protected function getBreadcrumbsFiles(): array
+    {
+        return Arr::wrap(config(static::BREADCRUMBS_CONFIG_KEY . '.' . static::BREADCRUMBS_FILES_CONFIG_KEY));
     }
 
     protected function getSpatieRoutesAttributesControllersDirs()
@@ -214,7 +316,10 @@ class CrumbBasket
 
         foreach ($reflMethods as $reflMethod) {
             $crumbsAttributes = $reflMethod->getAttributes(Breadcrumb::class, ReflectionAttribute::IS_INSTANCEOF);
-            $spatieRoutesAttributes = $reflMethod->getAttributes(self::SPATIE_ROUTE_ATTRIBUTE_FQN, ReflectionAttribute::IS_INSTANCEOF) ?? [];
+
+            $spatieRoutesAttributes = \class_exists(self::SPATIE_ROUTE_ATTRIBUTE_FQN)
+                ? ($reflMethod->getAttributes(self::SPATIE_ROUTE_ATTRIBUTE_FQN, ReflectionAttribute::IS_INSTANCEOF) ?? [])
+                : null;
 
             if (empty($crumbsAttributes)) {
                 continue;
@@ -248,30 +353,72 @@ class CrumbBasket
                 $crumbAttrInstance->name = $spatieRoute->name;
             }
 
-            if (\array_key_exists($crumbAttrInstance->name, $this->crumbs)) {
-                $currentCrumbFile = $reflMethod->getFileName();
-                $currentCrumbFileLine = $reflMethod->getStartLine();
-
-                // $definedCrumbData = $this->reflCrumbsCache[$crumbAttrInstance->name];
-                // $crumbDefinedFile = $definedCrumbData['ReflectionMethod']->getFileName();
-                // $crumbDefinedLine = $definedCrumbData['ReflectionMethod']->getStartLine();
-                $definedReflMethod = $this->crumbs[$crumbAttrInstance->name]->reflControllerAction;
-                $crumbDefinedFile = $definedReflMethod->get()->getFileName();
-                $crumbDefinedLine = $definedReflMethod->get()->getStartLine();
-
-
-                $errMsg = "The breadcrumb named \"{$crumbAttrInstance->name}\" cannot be defined at "
-                    . "$currentCrumbFile:$currentCrumbFileLine because it's "
-                    . "already been defined at $crumbDefinedFile:$crumbDefinedLine";
-
-                throw new \LogicException($errMsg);
-            }
-
-            $this->crumbs[$crumbAttrInstance->name] = new Crumb(
+            $this->addFromBreadcrumbAttributeInstanceAndLazyReflectionMethod(
                 $crumbAttrInstance,
                 LazyReflectionMethod::fromReflectionMethod($reflMethod)
             );
+
+            // if (\array_key_exists($crumbAttrInstance->name, $this->crumbs)) {
+            //     $currentCrumbFile = $reflMethod->getFileName();
+            //     $currentCrumbFileLine = $reflMethod->getStartLine();
+
+            //     // $definedCrumbData = $this->reflCrumbsCache[$crumbAttrInstance->name];
+            //     // $crumbDefinedFile = $definedCrumbData['ReflectionMethod']->getFileName();
+            //     // $crumbDefinedLine = $definedCrumbData['ReflectionMethod']->getStartLine();
+            //     $definedReflMethod = $this->crumbs[$crumbAttrInstance->name]->reflControllerAction;
+            //     $crumbDefinedFile = $definedReflMethod->get()->getFileName();
+            //     $crumbDefinedLine = $definedReflMethod->get()->getStartLine();
+
+
+            //     $errMsg = "The breadcrumb named \"{$crumbAttrInstance->name}\" cannot be defined at "
+            //         . "$currentCrumbFile:$currentCrumbFileLine because it's "
+            //         . "already been defined at $crumbDefinedFile:$crumbDefinedLine";
+
+            //     throw new \LogicException($errMsg);
+            // }
+
+            // $this->crumbs[$crumbAttrInstance->name] = new Crumb(
+            //     $crumbAttrInstance,
+            //     LazyReflectionMethod::fromReflectionMethod($reflMethod)
+            // );
         }
+    }
+
+    protected function addFromBreadcrumbAttributeInstanceAndLazyReflectionMethod(
+        Breadcrumb $crumbAttrInstance,
+        LazyReflectionMethodInterface $lazyReflMethod
+    ) {
+        if ($crumbAttrInstance->name === null) {
+            $errmsg = 'All crumbs must have a name';
+
+            throw new \LogicException($errmsg);
+        }
+
+        if (\array_key_exists($crumbAttrInstance->name, $this->crumbs)) {
+            if ($lazyReflMethod->isInitialized()) {
+                $currentCrumbFile = $lazyReflMethod->get()->getFileName();
+                $currentCrumbFileLine = $lazyReflMethod->get()->getStartLine();
+
+                $firstDefinedAt = "at $currentCrumbFile:$currentCrumbFileLine";
+            } else {
+                $firstDefinedAt = '';
+            }
+
+            $definedReflMethod = $this->crumbs[$crumbAttrInstance->name]->reflControllerAction;
+            $crumbDefinedFile = $definedReflMethod->get()->getFileName();
+            $crumbDefinedLine = $definedReflMethod->get()->getStartLine();
+
+
+            $errMsg = "The breadcrumb named \"{$crumbAttrInstance->name}\" cannot be redefined $firstDefinedAt"
+                . "because it's already been defined at $crumbDefinedFile:$crumbDefinedLine";
+
+            throw new \LogicException($errMsg);
+        }
+
+        $this->crumbs[$crumbAttrInstance->name] = new Crumb(
+            $crumbAttrInstance,
+            $lazyReflMethod
+        );
     }
 
     protected function getCrumbByName(?string $name): ?Crumb
@@ -285,6 +432,28 @@ class CrumbBasket
             return null;
         }
 
+        // if (\is_array($controllerAction)) {
+        //     $controllerAction = \implode('@', $controllerAction);
+        // }
+
+        // if (\str_starts_with($controllerAction, '\\')) {
+        //     $controllerAction = \substr($controllerAction, 1);
+        // }
+
+        $controllerAction = static::normalizeControllerAction($controllerAction);
+        foreach ($this->crumbs as $crumb) {
+            if ($crumb->getControllerAction() === $controllerAction) {
+                return $crumb;
+            }
+        }
+
+        dd($this->crumbs);
+
+        return null;
+    }
+
+    protected static function normalizeControllerAction(string|array $controllerAction): string
+    {
         if (\is_array($controllerAction)) {
             $controllerAction = \implode('@', $controllerAction);
         }
@@ -293,13 +462,7 @@ class CrumbBasket
             $controllerAction = \substr($controllerAction, 1);
         }
 
-        foreach ($this->crumbs as $crumb) {
-            if ($crumb->getControllerAction() === $controllerAction) {
-                return $crumb;
-            }
-        }
-
-        return null;
+        return \str_replace('::', '@', $controllerAction);
     }
 
 }
