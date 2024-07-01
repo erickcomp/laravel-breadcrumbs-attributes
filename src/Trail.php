@@ -114,9 +114,10 @@ class Trail
 
         $label = trim($label);
 
-        if (\str_starts_with($label, '@php:')) {
-            return $this->parsePhpLabel($label, $controllerActionParams);
-        }
+        // Removing PHP labels
+        // if (\str_starts_with($label, '@php:')) {
+        //     return $this->parsePhpLabel($label, $controllerActionParams);
+        // }
 
         // No request params on this label, it's just a simple string.
         // Let's return it right away
@@ -147,13 +148,22 @@ class Trail
         return $label;
     }
 
-    protected function parsePhpLabel(string $label, array $controllerActionParams): string
-    {
-        extract($controllerActionParams);
-        $phpCode = 'return ' . \substr($label, 5) . ';';
+    // protected function parsePhpLabel(string $label, array $controllerActionParams): string
+    // {
+    //     extract($controllerActionParams);
+    //     //$phpCode = '$resolvedLabel = <<<__EVAL__ ' . \substr($label, 5) . PHP_EOL . '__EVAL__;';
+    //     $phpCode = '$resolvedLabel = <<<__EVAL__ ' . 'Haha' . PHP_EOL . '__EVAL__;';
 
-        return eval ($phpCode);
-    }
+    //     //dd($phpCode);
+
+    //     eval ($phpCode);
+
+    //     return $resolvedLabel;
+
+    //     // return "' . \substr($label, 5) . '";';
+    //     //return eval ($phpCode);
+    // }
+
     protected function parseRequestParamLabel(string $label, array $controllerActionParams): string
     {
         $requestParamName = trim($label, '{}');
