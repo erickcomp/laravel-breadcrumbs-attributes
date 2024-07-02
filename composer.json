@@ -5,6 +5,7 @@
         "erickcomp",
         "breadcrumb",
         "attribute",
+        "laravel",
         "laravel-breadcrumbs-attributes"
     ],
     "homepage": "https://github.com/erickcomp/laravel-breadcrumbs-attributes",
@@ -18,7 +19,7 @@
     ],
     "require": {
         "php": "^8.1",
-        "illuminate/contracts": "^8.70|^9.0|^10.0|^11.0"
+        "illuminate/contracts": "^10.0|^11.0"
     },
     "suggest": {
         "spatie/laravel-route-attributes": "Allows route name binding (route name is used as the Breadcrumb name if you don't provide one)"
