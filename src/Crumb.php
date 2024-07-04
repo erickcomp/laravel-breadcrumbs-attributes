@@ -18,12 +18,11 @@ class Crumb
 
     public static function create(
         $controllerAction,
-        string|\Stringable|LabelResolver $label,
+        string|\Stringable|array $label,
         string|\Stringable|null $parent = null,
         string|\Stringable|null $name = null,
-        string|\Stringable|LabelResolver|null $auxCrumbBefore = null,
-        string|\Stringable|LabelResolver|null $auxCrumbAfter = null //,
-        //string|\Stringable|null $routeName = null
+        string|\Stringable|array|null $auxCrumbBefore = null,
+        string|\Stringable|array|null $auxCrumbAfter = null
     ): static {
         $crumbAttribute = new BreadcrumbAttribute($label, $parent, $name, $auxCrumbBefore, $auxCrumbAfter);
         $lazyReflMethod = self::buildLazyReflectionMethod($controllerAction);

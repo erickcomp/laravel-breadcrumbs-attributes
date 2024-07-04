@@ -278,25 +278,32 @@ class Trail
         return $parsed;
     }
 
-    protected function resolveLabelResolver(LabelResolver $resolver, array $controllerActionParams): string
-    {
-        return $resolver->resolveLabel($controllerActionParams);
-    }
+    // protected function resolveLabelResolver(LabelResolver $resolver, array $controllerActionParams): string
+    // {
+    //     return $resolver->resolveLabel($controllerActionParams);
+    // }
 
-    protected function resolverUrl(string $routeName, array $urlParams): ?string
-    {
+    // protected function resolverUrl(string $routeName, array $urlParams): ?string
+    // {
 
-    }
+    // }
 
-    public function addAuxCrumbToTrail(LabelResolver|CrumbResolver|\Stringable|string|null $auxCrumb, array $controllerActionParams)
+    public function addAuxCrumbToTrail(\Stringable|string|array|null $auxCrumb, array $controllerActionParams)
     {
-        if ($auxCrumb instanceof CrumbResolver) {
-            $this->crumbsTrail[] = $this->resolveCrumbResolver($auxCrumb, $controllerActionParams);
-        } elseif ($auxCrumb instanceof LabelResolver) {
-            $this->crumbsTrail[] = new ProcessedCrumb($this->resolveLabelResolver($auxCrumb, $controllerActionParams));
-        } elseif ($auxCrumb !== null) {
-            $this->crumbsTrail[] = new ProcessedCrumb((string) $auxCrumb);
+        if ($auxCrumb === null) {
+            return;
         }
+
+        $this->crumbsTrail[] = new ProcessedCrumb(
+            $this->resolveLabel($auxCrumb, $controllerActionParams)
+        );
+        // if ($auxCrumb instanceof CrumbResolver) {
+        //     $this->crumbsTrail[] = $this->resolveCrumbResolver($auxCrumb, $controllerActionParams);
+        // } elseif ($auxCrumb instanceof LabelResolver) {
+        //     $this->crumbsTrail[] = new ProcessedCrumb($this->resolveLabelResolver($auxCrumb, $controllerActionParams));
+        // } elseif ($auxCrumb !== null) {
+        //     $this->crumbsTrail[] = new ProcessedCrumb((string) $auxCrumb);
+        // }
     }
 
     protected function resolveCrumbResolver(

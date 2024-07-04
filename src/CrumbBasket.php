@@ -74,8 +74,8 @@ class CrumbBasket
         string|\Stringable|array $label,
         string|\Stringable|null $parent = null,
         string|\Stringable|null $name = null,
-        string|\Stringable|null $auxCrumbBefore = null,
-        string|\Stringable|null $auxCrumbAfter = null
+        string|\Stringable|array|null $auxCrumbBefore = null,
+        string|\Stringable|array|null $auxCrumbAfter = null
     ) {
         //$route = $this->router->getRoutes()->getByName($routeName);   
 
@@ -108,8 +108,8 @@ class CrumbBasket
         string|\Stringable|array $label,
         string|\Stringable|null $name,
         string|\Stringable|null $parent = null,
-        string|\Stringable|null $auxCrumbBefore = null,
-        string|\Stringable|null $auxCrumbAfter = null
+        string|\Stringable|array|null $auxCrumbBefore = null,
+        string|\Stringable|array|null $auxCrumbAfter = null
     ) {
         $crumbAttrInstance = new Breadcrumb(
             $label,
