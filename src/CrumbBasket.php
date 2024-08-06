@@ -7,6 +7,7 @@ use ErickComp\BreadcrumbAttributes\Providers\BreadcrumbsAttributeServiceProvider
 use ErickComp\BreadcrumbAttributes\Util\LazyReflectionMethod;
 use ErickComp\BreadcrumbAttributes\Util\LazyReflectionMethodFromRouteName;
 use ErickComp\BreadcrumbAttributes\Util\LazyReflectionMethodInterface;
+use ErickComp\BreadcrumbAttributes\Enums\ConfigWhenAlreadyDefined;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Application;
 use Illuminate\Routing\Route;
@@ -394,31 +395,44 @@ class CrumbBasket
             throw new \LogicException($errmsg);
         }
 
-        if (\array_key_exists($crumbAttrInstance->name, $this->crumbs)) {
-            if ($lazyReflMethod->isInitialized()) {
-                $currentCrumbFile = $lazyReflMethod->get()->getFileName();
-                $currentCrumbFileLine = $lazyReflMethod->get()->getStartLine();
+        if (!\array_key_exists($crumbAttrInstance->name, $this->crumbs)) {
+            $this->crumbs[$crumbAttrInstance->name] = new Crumb(
+                $crumbAttrInstance,
+                $lazyReflMethod
+            );
 
-                $firstDefinedAt = "at $currentCrumbFile:$currentCrumbFileLine";
-            } else {
-                $firstDefinedAt = '';
-            }
-
-            $definedReflMethod = $this->crumbs[$crumbAttrInstance->name]->reflControllerAction;
-            $crumbDefinedFile = $definedReflMethod->get()->getFileName();
-            $crumbDefinedLine = $definedReflMethod->get()->getStartLine();
-
-
-            $errMsg = "The breadcrumb named \"{$crumbAttrInstance->name}\" cannot be redefined $firstDefinedAt"
-                . "because it's already been defined at $crumbDefinedFile:$crumbDefinedLine";
-
-            throw new \LogicException($errMsg);
+            return;
         }
 
-        $this->crumbs[$crumbAttrInstance->name] = new Crumb(
-            $crumbAttrInstance,
-            $lazyReflMethod
-        );
+        /** @var ConfigWhenAlreadyDefined $configWhenAlreadyDefined*/
+        $configWhenAlreadyDefined = config('erickcomp-laravel-breadcrumbs-attributes.when_already_defined');
+
+        switch ($configWhenAlreadyDefined->value) {
+            case ConfigWhenAlreadyDefined::ThrowException->value:
+                if ($lazyReflMethod->isInitialized()) {
+                    $currentCrumbFile = $lazyReflMethod->get()->getFileName();
+                    $currentCrumbFileLine = $lazyReflMethod->get()->getStartLine();
+
+                    $firstDefinedAt = "at $currentCrumbFile:$currentCrumbFileLine";
+                } else {
+                    $firstDefinedAt = '';
+                }
+
+                $definedReflMethod = $this->crumbs[$crumbAttrInstance->name]->reflControllerAction;
+                $crumbDefinedFile = $definedReflMethod->get()->getFileName();
+                $crumbDefinedLine = $definedReflMethod->get()->getStartLine();
+
+
+                $errMsg = "The breadcrumb named \"{$crumbAttrInstance->name}\" cannot be redefined $firstDefinedAt "
+                    . "because it's already been defined at $crumbDefinedFile:$crumbDefinedLine";
+
+                throw new \LogicException($errMsg);
+
+            case ConfigWhenAlreadyDefined::Ignore->value:
+                break;
+            default:
+                throw new \DomainException("Config value [erickcomp-laravel-breadcrumbs-attributes.when_already_defined] must be an instance of [" . ConfigWhenAlreadyDefined::class . "]");
+        }
     }
 
     protected function getCrumbByName(?string $name): ?Crumb
@@ -447,7 +461,7 @@ class CrumbBasket
             }
         }
 
-        dd($this->crumbs);
+        //dd($this->crumbs);
 
         return null;
     }
