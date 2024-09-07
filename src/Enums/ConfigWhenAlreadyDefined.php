@@ -6,4 +6,5 @@ enum ConfigWhenAlreadyDefined: string
 {
     case ThrowException = 'throw_exception';
     case Ignore = 'ignore';
+    case Override = 'override';
 }

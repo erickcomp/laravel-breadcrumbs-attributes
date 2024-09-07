@@ -46,7 +46,9 @@ class Crumb
 
     private static function buildLazyReflectionMethod($controllerAction): LazyReflectionMethodInterface
     {
-        $reflMethod = new \ReflectionMethod(...Arr::wrap($controllerAction));
-        return LazyReflectionMethod::fromReflectionMethod($reflMethod);
+        //$reflMethod = new \ReflectionMethod(...Arr::wrap($controllerAction));
+        //return LazyReflectionMethod::fromReflectionMethod($reflMethod);
+
+        return new LazyReflectionMethod(...Arr::wrap($controllerAction));
     }
 }

@@ -356,7 +356,8 @@ class CrumbBasket
 
             $this->addFromBreadcrumbAttributeInstanceAndLazyReflectionMethod(
                 $crumbAttrInstance,
-                LazyReflectionMethod::fromReflectionMethod($reflMethod)
+                //LazyReflectionMethod::fromReflectionMethod($reflMethod)
+                new LazyReflectionMethod($className, $reflMethod->name)
             );
 
             // if (\array_key_exists($crumbAttrInstance->name, $this->crumbs)) {
@@ -429,6 +430,12 @@ class CrumbBasket
                 throw new \LogicException($errMsg);
 
             case ConfigWhenAlreadyDefined::Ignore->value:
+                break;
+            case ConfigWhenAlreadyDefined::Override->value:
+                $this->crumbs[$crumbAttrInstance->name] = new Crumb(
+                    $crumbAttrInstance,
+                    $lazyReflMethod
+                );
                 break;
             default:
                 throw new \DomainException("Config value [erickcomp-laravel-breadcrumbs-attributes.when_already_defined] must be an instance of [" . ConfigWhenAlreadyDefined::class . "]");

@@ -230,7 +230,7 @@ class BreadcrumbsAttributesTest extends TestCase
 
     protected function registerTestBreadcrumbs()
     {
-        $testDir = __DIR__ . DIRECTORY_SEPARATOR
+        $controllersDir = __DIR__ . DIRECTORY_SEPARATOR
             . 'TestClasses' . DIRECTORY_SEPARATOR
             . 'Controllers';
 
@@ -249,7 +249,7 @@ class BreadcrumbsAttributesTest extends TestCase
             $this->$method(...$args);
         };
 
-        $crumbBasketCaller->call($crumbBasket, 'gatherCrumbsFromDirectories', [$testDir]);
+        $crumbBasketCaller->call($crumbBasket, 'gatherCrumbsFromDirectories', [$controllersDir]);
 
         $this->app->singleton(CrumbBasket::class, function () use ($crumbBasket) {
             return $crumbBasket;

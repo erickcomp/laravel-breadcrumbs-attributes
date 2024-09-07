@@ -17,6 +17,15 @@ It works by scanning the controllers in the directories that contains your contr
 ## Custom controllers directories
 If, for some, reason, you keep your controllers in a different directory, fear not! All you have to do is publish the config file and write down the directories where your controllers lie.
 
+## Collision when defining breadcrumbs
+If you define breadcrumbs for the same route twice, and exception will be thrown. This behavior can be changed through the config ```erickcomp-laravel-breadcrumbs-attributes.when_already_defined```. This config accepts one of these values:
+
+* ```throw```: It's the default behavior. An exception will be thrown when the breadcrumbs scanner finds the second definition of the breadcrumb;
+
+* ```ignore```: The <b>first</b> definition of the breadcrumb will be used and the following ones will be <b>silently ignored</b>. It's useful to prevent a definition from a base controller class to be overriden by children controller classes.
+ 
+* ```override```: The <b>last</b> definition of the breadcrumb will be used and the previous ones following will be <b>silently ignored</b>. It's useful to create a fallback breadcrumb definition on a base controller class while allowing it to be overriden into a child controller class.
+
 
 ## Installation
 

@@ -7,7 +7,7 @@ class LazyReflectionMethod implements LazyReflectionMethodInterface
     public readonly string $class;
     public readonly string $method;
     private \ReflectionMethod $reflMethod;
-    
+
     public function __construct(string $class, string $method)
     {
         if (!\str_starts_with($class, '\\')) {
@@ -55,11 +55,11 @@ class LazyReflectionMethod implements LazyReflectionMethodInterface
         return $this->reflMethod;
     }
 
-    public static function fromReflectionMethod(\ReflectionMethod $reflectionMethod): static
-    {
-        $ret = new static($reflectionMethod->class, $reflectionMethod->name);
-        $ret->reflMethod = $reflectionMethod;
-
-        return $ret;
-    }
+    //public static function fromReflectionMethod(\ReflectionMethod $reflectionMethod): static
+    //{
+    //    $ret = new static($reflectionMethod->class, $reflectionMethod->name);
+    //    $ret->reflMethod = $reflectionMethod;
+    //
+    //    return $ret;
+    //}
 }
