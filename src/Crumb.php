@@ -4,8 +4,8 @@ namespace ErickComp\BreadcrumbAttributes;
 
 use ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb as BreadcrumbAttribute;
 use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\LabelResolver;
-use ErickComp\BreadcrumbAttributes\Util\LazyReflectionMethodInterface;
 use ErickComp\BreadcrumbAttributes\Util\LazyReflectionMethod;
+use ErickComp\BreadcrumbAttributes\Util\LazyReflectionMethodInterface;
 use Illuminate\Support\Arr;
 
 class Crumb

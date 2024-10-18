@@ -3,11 +3,11 @@
 namespace ErickComp\BreadcrumbAttributes;
 
 use ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb;
+use ErickComp\BreadcrumbAttributes\Enums\ConfigWhenAlreadyDefined;
 use ErickComp\BreadcrumbAttributes\Providers\BreadcrumbsAttributeServiceProvider;
 use ErickComp\BreadcrumbAttributes\Util\LazyReflectionMethod;
 use ErickComp\BreadcrumbAttributes\Util\LazyReflectionMethodFromRouteName;
 use ErickComp\BreadcrumbAttributes\Util\LazyReflectionMethodInterface;
-use ErickComp\BreadcrumbAttributes\Enums\ConfigWhenAlreadyDefined;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Application;
 use Illuminate\Routing\Route;
@@ -27,6 +27,8 @@ class CrumbBasket
     public const BREADCRUMBS_CONTROLLERS_DIRS_FULL_CONFIG_KEY = self::BREADCRUMBS_CONFIG_KEY . '.' . self::BREADCRUMBS_CONTROLLERS_DIRS_CONFIG_KEY;
     public const BREADCRUMBS_FILES_CONFIG_KEY = 'breadcrumbs_files';
     public const BREADCRUMBS_FILES_FULL_CONFIG_KEY = self::BREADCRUMBS_CONFIG_KEY . '.' . self::BREADCRUMBS_FILES_CONFIG_KEY;
+    public const BREADCRUMBS_INHERIT_BREADCRUMB_DEFINITION_FROM_PARENT_METHOD_CONFIG_KEY = 'inherit_breadcrumb_definition_from_parent_method';
+    public const BREADCRUMBS_INHERIT_BREADCRUMB_DEFINITION_FROM_PARENT_METHOD_FULL_CONFIG_KEY =  self::BREADCRUMBS_CONFIG_KEY . '.' . self::BREADCRUMBS_INHERIT_BREADCRUMB_DEFINITION_FROM_PARENT_METHOD_CONFIG_KEY;
     public const BREADCRUMBS_DEFAULT_CONFIG_FILE = __DIR__ . \DIRECTORY_SEPARATOR . 'config' . \DIRECTORY_SEPARATOR . self::BREADCRUMBS_CONFIG_KEY . '.php';
     public const BREADCRUMBS_CACHE_FILE_KEY = 'ERICKCOMP_LARAVEL_BREADCRUMBS_ATTRIBUTES_CACHE';
     public const BREADCRUMBS_CACHE_FILE_DEFAULT = 'cache/erickcomp-laravel-breadcrumbs-attributes';
@@ -465,6 +467,27 @@ class CrumbBasket
         foreach ($this->crumbs as $crumb) {
             if ($crumb->getControllerAction() === $controllerAction) {
                 return $crumb;
+            }
+        }
+
+        $inheritBreadcrumbDefinitionFromParentMethod = \config(static::BREADCRUMBS_INHERIT_BREADCRUMB_DEFINITION_FROM_PARENT_METHOD_FULL_CONFIG_KEY, false);
+
+        if ($inheritBreadcrumbDefinitionFromParentMethod) {
+            [$class, $method] = \explode('@', $controllerAction);
+
+            $parentClass = \get_parent_class($class);
+
+            if ($parentClass !== false) {
+                $parentControllerAction = "$parentClass@$method";
+
+                $parentCrumb = $this->getCrumbByControllerAction($parentControllerAction);
+
+                if ($parentCrumb !== null) {
+                    $lazyReflMethod = new LazyReflectionMethod($class, $method);
+                    $inheritedCrumb = new Crumb($parentCrumb->crumbData, $lazyReflMethod);
+                    
+                    return $inheritedCrumb;
+                }
             }
         }
 
