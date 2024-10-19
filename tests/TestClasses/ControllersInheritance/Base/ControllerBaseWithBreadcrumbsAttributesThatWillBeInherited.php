@@ -1,6 +1,6 @@
 <?php
 
-namespace ErickComp\BreadcrumbAttributes\Tests\TestClasses\ControllersOverrides\Base;
+namespace ErickComp\BreadcrumbAttributes\Tests\TestClasses\ControllersInheritance\Base;
 
 use ErickComp\BreadcrumbAttributes\Attributes\Breadcrumb;
 use ErickComp\BreadcrumbAttributes\Facades\BreadcrumbsTrail;

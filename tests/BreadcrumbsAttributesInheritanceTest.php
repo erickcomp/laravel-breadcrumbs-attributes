@@ -8,7 +8,7 @@ use ErickComp\BreadcrumbAttributes\Enums\ConfigWhenAlreadyDefined;
 use ErickComp\BreadcrumbAttributes\Facades\BreadcrumbsTrail;
 use ErickComp\BreadcrumbAttributes\Providers\BreadcrumbsAttributeServiceProvider;
 use ErickComp\BreadcrumbAttributes\Tests\TestClasses\Controllers\ControllerWithoutSpatieRoutes;
-use ErickComp\BreadcrumbAttributes\Tests\TestClasses\ControllersOverrides\Override\ControllerOverrideWithInheritedBreadcrumbsAttributes;
+use ErickComp\BreadcrumbAttributes\Tests\TestClasses\ControllersInheritance\Inherited\ControllerOverrideWithInheritedBreadcrumbsAttributes;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Route;
@@ -16,13 +16,6 @@ use Illuminate\Support\Facades\URL;
 
 class BreadcrumbsAttributesInheritanceTest extends TestCase
 {
-    public function setUp(): void
-    {
-        parent::setUp();
-
-        Config::set('erickcomp-laravel-breadcrumbs-attributes.when_already_defined', ConfigWhenAlreadyDefined::Override);
-    }
-
     /** @test */
     public function it_can_inherit_breadcrumb_when_config_is_set_to_true()
     {
@@ -68,16 +61,16 @@ class BreadcrumbsAttributesInheritanceTest extends TestCase
         /** @var \Spatie\RouteAttributes\RouteRegistrar $routeRegistrar */
         $routeRegistrar = $this->app->make(\Spatie\RouteAttributes\RouteRegistrar::class);
 
-        $rootNamespace = '\\' . __NAMESPACE__ . '\\TestClasses\\ControllersOverrides\\Base';
-        $controllersDir = __DIR__ . DIRECTORY_SEPARATOR . 'TestClasses' . DIRECTORY_SEPARATOR . 'ControllersOverrides' . DIRECTORY_SEPARATOR . 'Base';
+        $rootNamespace = '\\' . __NAMESPACE__ . '\\TestClasses\\ControllersInheritance\\Base';
+        $controllersDir = __DIR__ . DIRECTORY_SEPARATOR . 'TestClasses' . DIRECTORY_SEPARATOR . 'ControllersInheritance' . DIRECTORY_SEPARATOR . 'Base';
         $routeRegistrar
             ->useRootNamespace($rootNamespace)
             ->useMiddleware(SubstituteBindings::class)
             ->useBasePath($controllersDir)
             ->registerDirectory($controllersDir);
 
-        $rootNamespace = '\\' . __NAMESPACE__ . '\\TestClasses\\ControllersOverrides\\Override';
-        $controllersDir = __DIR__ . DIRECTORY_SEPARATOR . 'TestClasses' . DIRECTORY_SEPARATOR . 'ControllersOverrides' . DIRECTORY_SEPARATOR . 'Override';
+        $rootNamespace = '\\' . __NAMESPACE__ . '\\TestClasses\\ControllersInheritance\\Inherited';
+        $controllersDir = __DIR__ . DIRECTORY_SEPARATOR . 'TestClasses' . DIRECTORY_SEPARATOR . 'ControllersInheritance' . DIRECTORY_SEPARATOR . 'Inherited';
         $routeRegistrar
             ->useRootNamespace($rootNamespace)
             ->useMiddleware(SubstituteBindings::class)
@@ -89,13 +82,13 @@ class BreadcrumbsAttributesInheritanceTest extends TestCase
     {
         $controllersDirBase = __DIR__ . DIRECTORY_SEPARATOR
             . 'TestClasses' . DIRECTORY_SEPARATOR
-            . 'ControllersOverrides' . DIRECTORY_SEPARATOR
+            . 'ControllersInheritance' . DIRECTORY_SEPARATOR
             . 'Base';
 
         $controllersDirOverride = __DIR__ . DIRECTORY_SEPARATOR
             . 'TestClasses' . DIRECTORY_SEPARATOR
-            . 'ControllersOverrides' . DIRECTORY_SEPARATOR
-            . 'Override';
+            . 'ControllersInheritance' . DIRECTORY_SEPARATOR
+            . 'Inherited';
 
         $crumbBasket = new CrumbBasket(
             $this->app,

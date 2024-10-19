@@ -1,9 +1,9 @@
 <?php
 
-namespace ErickComp\BreadcrumbAttributes\Tests\TestClasses\ControllersOverrides\Override;
+namespace ErickComp\BreadcrumbAttributes\Tests\TestClasses\ControllersInheritance\Inherited;
 
 use ErickComp\BreadcrumbAttributes\Facades\BreadcrumbsTrail;
-use ErickComp\BreadcrumbAttributes\Tests\TestClasses\ControllersOverrides\Base\ControllerBaseWithBreadcrumbsAttributesThatWillBeInherited;
+use ErickComp\BreadcrumbAttributes\Tests\TestClasses\ControllersInheritance\Base\ControllerBaseWithBreadcrumbsAttributesThatWillBeInherited;
 use Illuminate\Http\JsonResponse;
 use Spatie\RouteAttributes\Attributes\Get;
 
