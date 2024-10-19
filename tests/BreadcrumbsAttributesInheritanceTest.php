@@ -8,34 +8,52 @@ use ErickComp\BreadcrumbAttributes\Enums\ConfigWhenAlreadyDefined;
 use ErickComp\BreadcrumbAttributes\Facades\BreadcrumbsTrail;
 use ErickComp\BreadcrumbAttributes\Providers\BreadcrumbsAttributeServiceProvider;
 use ErickComp\BreadcrumbAttributes\Tests\TestClasses\Controllers\ControllerWithoutSpatieRoutes;
+use ErickComp\BreadcrumbAttributes\Tests\TestClasses\ControllersOverrides\Override\ControllerOverrideWithInheritedBreadcrumbsAttributes;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 
-class BreadcrumbsAttributesOverridesOnChildControllerTest extends TestCase
+class BreadcrumbsAttributesInheritanceTest extends TestCase
 {
     public function setUp(): void
     {
         parent::setUp();
 
         Config::set('erickcomp-laravel-breadcrumbs-attributes.when_already_defined', ConfigWhenAlreadyDefined::Override);
-        $this->registerRoutes();
-
-        $this->registerTestBreadcrumbs();
     }
 
     /** @test */
-    public function it_can_override_a_base_controller_breadcrumb()
+    public function it_can_inherit_breadcrumb_when_config_is_set_to_true()
     {
-        $response = $this->get('base-and-overrides-controllers');
+        Config::set('erickcomp-laravel-breadcrumbs-attributes.inherit_breadcrumb_definition_from_parent_method', true);
+        $this->registerRoutes();
+        $this->registerTestBreadcrumbs();
+
+        $registeredCrumbs = $this->getRegisteredCrumbs();
+
+        $response = $this->get('base-controller-which-will-get-breadcrumbs-inherited-by-child');
 
         $response->assertExactJson([
-            [
-                'label' => 'Breadcrumb from CHILD_CONTROLLER',
-                'url' => URL::to('base-and-overrides-controllers')
-            ]
+            'controller_action' => ControllerOverrideWithInheritedBreadcrumbsAttributes::class . '::test',
+            'crumbs' => [[
+                'label' => 'Breadcrumb defined at a BASE_CONTROLLER',
+                'url' => URL::to('base-controller-which-will-get-breadcrumbs-inherited-by-child')
+            ]]
         ]);
+    }
+
+    /** @test */
+    public function it_cannnot_inherit_breadcrumb_when_config_is_set_to_false()
+    {
+        Config::set('erickcomp-laravel-breadcrumbs-attributes.inherit_breadcrumb_definition_from_parent_method', false);
+        $this->registerRoutes();
+        $this->registerTestBreadcrumbs();
+
+        $expectedResponseExceptionMessage = 'Error building breadcrumb trail: Could not find crumb for the controller action "' . ControllerOverrideWithInheritedBreadcrumbsAttributes::class . '@test"';
+        $response = $this->get('base-controller-which-will-get-breadcrumbs-inherited-by-child');
+        
+        $this->assertEquals($response->exception->getMessage(), $expectedResponseExceptionMessage);
     }
 
     protected function getPackageProviders($app)
@@ -101,17 +119,17 @@ class BreadcrumbsAttributesOverridesOnChildControllerTest extends TestCase
         });
     }
 
-    /**
-     * Resolve application core configuration implementation.
-     *
-     * @param  \Illuminate\Foundation\Application  $app
-     *
-     * @return void
-     */
-    protected function resolveApplicationConfiguration($app)
-    {
-        parent::resolveApplicationConfiguration($app);
-    }
+    // /**
+    //  * Resolve application core configuration implementation.
+    //  *
+    //  * @param  \Illuminate\Foundation\Application  $app
+    //  *
+    //  * @return void
+    //  */
+    // protected function resolveApplicationConfiguration($app)
+    // {
+    //     parent::resolveApplicationConfiguration($app);
+    // }
 
     protected function assertBreadcrumbIsRegistered(string $name)
     {

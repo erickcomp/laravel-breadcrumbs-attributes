@@ -14,6 +14,6 @@ class ControllerBaseWithBreadcrumbsAttributes
     #[Breadcrumb('Breadcrumb from BASE_CONTROLLER')]
     public function test()
     {
-        $this->sendsBreadcrumbsAsJsonResponse();
+        return $this->sendsBreadcrumbsAsJsonResponse();
     }
 }

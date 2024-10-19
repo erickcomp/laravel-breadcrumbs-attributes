@@ -17,13 +17,13 @@ class ControllerWithSpatieRoutes
     #[Breadcrumb('Spatie Breadcrumb: Simple | No Name')]
     public function spatieGetMethodSimpleNoName()
     {
-        $this->sendsBreadcrumbsAsJsonResponse();
+        return $this->sendsBreadcrumbsAsJsonResponse();
     }
 
     #[Get('spatie-get-method-simple-named', name: 'home.spatie-get-method-named')]
     #[Breadcrumb('Spatie Breadcrumb: Simple | Named', parent: 'home', name: 'spatie-get-simple-named')]
     public function spatieGetMethodSimpleNamed()
     {
-        $this->sendsBreadcrumbsAsJsonResponse();
+        return $this->sendsBreadcrumbsAsJsonResponse();
     }
 }
