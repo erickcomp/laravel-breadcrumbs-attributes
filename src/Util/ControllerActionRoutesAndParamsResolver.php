@@ -2,10 +2,12 @@
 
 namespace ErickComp\BreadcrumbAttributes\Util;
 
+use ErickComp\BreadcrumbAttributes\CrumbBasket;
 use Illuminate\Container\Container;
-use Illuminate\Routing\Router;
-use Illuminate\Routing\ResolvesRouteDependencies;
 use Illuminate\Contracts\Routing\UrlGenerator;
+use Illuminate\Routing\ResolvesRouteDependencies;
+use Illuminate\Routing\Route;
+use Illuminate\Routing\Router;
 use ReflectionMethod;
 
 class ControllerActionRoutesAndParamsResolver
@@ -41,8 +43,45 @@ class ControllerActionRoutesAndParamsResolver
                 $controllerAction = \substr($controllerAction, 1);
             }
         }
+
+        $routerRoutes = $this->router->getRoutes();
+        $actionRoute = $routerRoutes->getByAction($controllerAction);
+
+        if ($actionRoute === null && $this->usesBreadcrumbsInheritance()) {
+            [$controllerClass, $controllerMethod] = \explode(
+                '@',
+                $controllerAction
+            ) + [1 => null];
+
+            /** @var Route $appRoute */
+            foreach ($routerRoutes as $appRoute) {
+                $appRouteController = $appRoute->getAction('controller');
+
+                if (empty($appRouteController)) {
+                    continue;
+                }
+
+                [$appRouteControllerClass, $appRouteControllerMethod] = \explode(
+                    '@',
+                    $appRoute->getAction('controller')
+                ) + [1 => null];
+
+                if (!\is_a($appRouteControllerClass, $controllerClass, true)) {
+                    continue;
+                }
+
+                if ($appRouteControllerMethod !== $controllerMethod) {
+                    continue;
+                }
+
+                $actionRoute = $appRoute;
+                break;
+            }
+        }
+
+        return $this->urlGenerator->toRoute($actionRoute, $this->getParametersForControllerActionUrlFromCurrentRouteParams($controllerAction), true);
         //return $this->urlGenerator->route($route, $this->getParametersForRouteFromCurrentRouteParams($route));
-        return $this->urlGenerator->action($controllerAction, $this->getParametersForControllerActionUrlFromCurrentRouteParams($controllerAction));
+        //return $this->urlGenerator->action($controllerAction, $this->getParametersForControllerActionUrlFromCurrentRouteParams($controllerAction));
     }
 
     public function getControllerActionParamsFromCurrentRouteParams(ReflectionMethod $controllerAction)
@@ -88,5 +127,12 @@ class ControllerActionRoutesAndParamsResolver
         $routeParamsNames = $route->parameterNames();
 
         return \array_filter($params, fn($paramName) => \in_array($paramName, $routeParamsNames), \ARRAY_FILTER_USE_KEY);
+    }
+
+    protected function usesBreadcrumbsInheritance(): bool
+    {
+        $configKey = CrumbBasket::BREADCRUMBS_INHERIT_BREADCRUMB_DEFINITION_FROM_PARENT_METHOD_FULL_CONFIG_KEY;
+
+        return \config($configKey, false);
     }
 }
