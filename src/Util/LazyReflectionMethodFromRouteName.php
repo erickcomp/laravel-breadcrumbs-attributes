@@ -2,33 +2,30 @@
 
 namespace ErickComp\BreadcrumbAttributes\Util;
 
-use Illuminate\Foundation\Support\Providers\RouteServiceProvider;
-use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 
 class LazyReflectionMethodFromRouteName implements LazyReflectionMethodInterface
 {
-    private \ReflectionMethod $reflMethod;
+    private ?\ReflectionMethod $reflMethod;
 
     public function __construct(
-        public readonly string $routeName
-    ) {
+        public readonly string $routeName,
+    ) {}
+
+    public function getClass(): ?string
+    {
+        return $this->get()?->getDeclaringClass()?->getName();
     }
 
-    public function getClass(): string
+    public function getMethod(): ?string
     {
-        return $this->get()->getDeclaringClass()->getName();
-    }
-
-    public function getMethod(): string
-    {
-        return $this->get()->getName();
+        return $this->get()?->getName();
     }
 
     public function __serialize()
     {
         return [
-            'routeName' => $this->routeName
+            'routeName' => $this->routeName,
         ];
     }
 
@@ -42,7 +39,7 @@ class LazyReflectionMethodFromRouteName implements LazyReflectionMethodInterface
         return isset($this->reflMethod);
     }
 
-    public function get(): \ReflectionMethod
+    public function get(): ?\ReflectionMethod
     {
         if (!$this->isInitialized()) {
             $route = Route::getRoutes()->getByName($this->routeName);
@@ -53,10 +50,14 @@ class LazyReflectionMethodFromRouteName implements LazyReflectionMethodInterface
                 throw new \LogicException($errmsg);
             }
 
-            $this->reflMethod = new \ReflectionMethod(
-                $route->getControllerClass(),
-                $route->getActionMethod()
-            );
+            $controllerClass = $route->getControllerClass();
+
+            $this->reflMethod = $controllerClass === null
+                ? null
+                : new \ReflectionMethod(
+                    $route->getControllerClass(),
+                    $route->getActionMethod(),
+                );
         }
 
         return $this->reflMethod;

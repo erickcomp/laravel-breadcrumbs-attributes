@@ -17,7 +17,6 @@ use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionMethod;
 use SplFileInfo;
-
 use Symfony\Component\Finder\Finder;
 
 class CrumbBasket
@@ -28,7 +27,7 @@ class CrumbBasket
     public const BREADCRUMBS_FILES_CONFIG_KEY = 'breadcrumbs_files';
     public const BREADCRUMBS_FILES_FULL_CONFIG_KEY = self::BREADCRUMBS_CONFIG_KEY . '.' . self::BREADCRUMBS_FILES_CONFIG_KEY;
     public const BREADCRUMBS_INHERIT_BREADCRUMB_DEFINITION_FROM_PARENT_METHOD_CONFIG_KEY = 'inherit_breadcrumb_definition_from_parent_method';
-    public const BREADCRUMBS_INHERIT_BREADCRUMB_DEFINITION_FROM_PARENT_METHOD_FULL_CONFIG_KEY =  self::BREADCRUMBS_CONFIG_KEY . '.' . self::BREADCRUMBS_INHERIT_BREADCRUMB_DEFINITION_FROM_PARENT_METHOD_CONFIG_KEY;
+    public const BREADCRUMBS_INHERIT_BREADCRUMB_DEFINITION_FROM_PARENT_METHOD_FULL_CONFIG_KEY = self::BREADCRUMBS_CONFIG_KEY . '.' . self::BREADCRUMBS_INHERIT_BREADCRUMB_DEFINITION_FROM_PARENT_METHOD_CONFIG_KEY;
     public const BREADCRUMBS_DEFAULT_CONFIG_FILE = __DIR__ . \DIRECTORY_SEPARATOR . 'config' . \DIRECTORY_SEPARATOR . self::BREADCRUMBS_CONFIG_KEY . '.php';
     public const BREADCRUMBS_CACHE_FILE_KEY = 'ERICKCOMP_LARAVEL_BREADCRUMBS_ATTRIBUTES_CACHE';
     public const BREADCRUMBS_CACHE_FILE_DEFAULT = 'cache/erickcomp-laravel-breadcrumbs-attributes';
@@ -45,10 +44,8 @@ class CrumbBasket
 
     public function __construct(
         protected Application $application,
-        protected Filesystem $fileSystem
-    ) {
-
-    }
+        protected Filesystem $fileSystem,
+    ) {}
 
     public function gatherCrumbsOntoBasket(bool $ignoreCache = false)
     {
@@ -78,7 +75,7 @@ class CrumbBasket
         string|\Stringable|null $parent = null,
         string|\Stringable|null $name = null,
         string|\Stringable|array|null $auxCrumbBefore = null,
-        string|\Stringable|array|null $auxCrumbAfter = null
+        string|\Stringable|array|null $auxCrumbAfter = null,
     ) {
         //$route = $this->router->getRoutes()->getByName($routeName);   
 
@@ -91,7 +88,7 @@ class CrumbBasket
             $parent,
             $name,
             $auxCrumbBefore,
-            $auxCrumbAfter
+            $auxCrumbAfter,
         );
 
         $this->addFromBreadcrumbAttributeInstanceAndLazyReflectionMethod(
@@ -112,14 +109,14 @@ class CrumbBasket
         string|\Stringable|null $name,
         string|\Stringable|null $parent = null,
         string|\Stringable|array|null $auxCrumbBefore = null,
-        string|\Stringable|array|null $auxCrumbAfter = null
+        string|\Stringable|array|null $auxCrumbAfter = null,
     ) {
         $crumbAttrInstance = new Breadcrumb(
             $label,
             $parent,
             $name,
             $auxCrumbBefore,
-            $auxCrumbAfter
+            $auxCrumbAfter,
         );
 
         $controllerAction = static::normalizeControllerAction($controllerAction);
@@ -128,7 +125,7 @@ class CrumbBasket
 
         $this->addFromBreadcrumbAttributeInstanceAndLazyReflectionMethod(
             $crumbAttrInstance,
-            $lazyReflMethod
+            $lazyReflMethod,
         );
     }
 
@@ -237,8 +234,8 @@ class CrumbBasket
             \array_merge(
                 $defaultConfigs[self::BREADCRUMBS_CONTROLLERS_DIRS_CONFIG_KEY],
                 $this->getSpatieRoutesAttributesControllersDirs(),
-                Config::get(self::BREADCRUMBS_CONTROLLERS_DIRS_FULL_CONFIG_KEY, [])
-            )
+                Config::get(self::BREADCRUMBS_CONTROLLERS_DIRS_FULL_CONFIG_KEY, []),
+            ),
         );
     }
 
@@ -359,38 +356,14 @@ class CrumbBasket
             $this->addFromBreadcrumbAttributeInstanceAndLazyReflectionMethod(
                 $crumbAttrInstance,
                 //LazyReflectionMethod::fromReflectionMethod($reflMethod)
-                new LazyReflectionMethod($className, $reflMethod->name)
+                new LazyReflectionMethod($className, $reflMethod->name),
             );
-
-            // if (\array_key_exists($crumbAttrInstance->name, $this->crumbs)) {
-            //     $currentCrumbFile = $reflMethod->getFileName();
-            //     $currentCrumbFileLine = $reflMethod->getStartLine();
-
-            //     // $definedCrumbData = $this->reflCrumbsCache[$crumbAttrInstance->name];
-            //     // $crumbDefinedFile = $definedCrumbData['ReflectionMethod']->getFileName();
-            //     // $crumbDefinedLine = $definedCrumbData['ReflectionMethod']->getStartLine();
-            //     $definedReflMethod = $this->crumbs[$crumbAttrInstance->name]->reflControllerAction;
-            //     $crumbDefinedFile = $definedReflMethod->get()->getFileName();
-            //     $crumbDefinedLine = $definedReflMethod->get()->getStartLine();
-
-
-            //     $errMsg = "The breadcrumb named \"{$crumbAttrInstance->name}\" cannot be defined at "
-            //         . "$currentCrumbFile:$currentCrumbFileLine because it's "
-            //         . "already been defined at $crumbDefinedFile:$crumbDefinedLine";
-
-            //     throw new \LogicException($errMsg);
-            // }
-
-            // $this->crumbs[$crumbAttrInstance->name] = new Crumb(
-            //     $crumbAttrInstance,
-            //     LazyReflectionMethod::fromReflectionMethod($reflMethod)
-            // );
         }
     }
 
     protected function addFromBreadcrumbAttributeInstanceAndLazyReflectionMethod(
         Breadcrumb $crumbAttrInstance,
-        LazyReflectionMethodInterface $lazyReflMethod
+        LazyReflectionMethodInterface $lazyReflMethod,
     ) {
         if ($crumbAttrInstance->name === null) {
             $errmsg = 'All crumbs must have a name';
@@ -401,7 +374,7 @@ class CrumbBasket
         if (!\array_key_exists($crumbAttrInstance->name, $this->crumbs)) {
             $this->crumbs[$crumbAttrInstance->name] = new Crumb(
                 $crumbAttrInstance,
-                $lazyReflMethod
+                $lazyReflMethod,
             );
 
             return;
@@ -436,7 +409,7 @@ class CrumbBasket
             case ConfigWhenAlreadyDefined::Override->value:
                 $this->crumbs[$crumbAttrInstance->name] = new Crumb(
                     $crumbAttrInstance,
-                    $lazyReflMethod
+                    $lazyReflMethod,
                 );
                 break;
             default:
@@ -485,7 +458,7 @@ class CrumbBasket
                 if ($parentCrumb !== null) {
                     $lazyReflMethod = new LazyReflectionMethod($class, $method);
                     $inheritedCrumb = new Crumb($parentCrumb->crumbData, $lazyReflMethod);
-                    
+
                     return $inheritedCrumb;
                 }
             }

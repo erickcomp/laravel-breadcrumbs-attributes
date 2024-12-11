@@ -3,7 +3,6 @@
 namespace ErickComp\BreadcrumbAttributes;
 
 use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\CrumbResolver;
-use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\LabelResolver;
 use ErickComp\BreadcrumbAttributes\Util\ControllerActionRoutesAndParamsResolver;
 use Illuminate\Routing\Router;
 
@@ -15,9 +14,8 @@ class Trail
     public function __construct(
         protected Router $router,
         protected CrumbBasket $crumbBasket,
-        protected ControllerActionRoutesAndParamsResolver $controllerActionRoutesAndParamsResolver
-    ) {
-    }
+        protected ControllerActionRoutesAndParamsResolver $controllerActionRoutesAndParamsResolver,
+    ) {}
 
     public function getCrumbBasket(): CrumbBasket
     {
@@ -52,7 +50,7 @@ class Trail
 
         $controllerActionParamsWithUrlParamsNames = $this->controllerActionRoutesAndParamsResolver->resolveMethodDependencies(
             $urlParams,
-            $controllerActionReflectionMethod
+            $controllerActionReflectionMethod,
         );
 
         $controllerActionParams = [];
@@ -65,30 +63,16 @@ class Trail
 
         $this->addAuxCrumbToTrail($breadcrumbAttr->auxCrumbBefore, $controllerActionParams);
 
-        // $crumbLabel = $breadcrumbAttr->label instanceof LabelResolver
-        //     ? $this->resolveLabelResolver($breadcrumbAttr->label, $controllerActionParams)
-        //     : (string) $breadcrumbAttr->label;
-        // alterar aqui para somente permitir 2 possibilidades:
-        // 1 - string: que pode ser:
-        //   1.1 - String comum
-        //   1.2 - String com parametro: {parametro} 
-        //   1.3 - String usando property de um parametro: {parametro}->propName
-        //   1.4 - String usando metodo de um parametro com a seguinte sintaxe:
-        //         {requestParam}->method2();
-        //         {requestParam}->method(int:1, bool:true, null:null, float:3.14, string:paramN, {otherRequestParam})
-        // 2 - Um array, onde cada posição é uma string que será avaliada de acordo com o item 1.
-        //     Estas strings serão concatenadas para formar o breadcrumb.
-
         $crumbLabel = $this->resolveLabel($breadcrumbAttr->label, $controllerActionParams);
 
         $crumbUrl = $this->controllerActionRoutesAndParamsResolver->resolveControllerActionUrlWithCurrentRouteParams([
             $crumbItem->reflControllerAction->getClass(),
-            $crumbItem->reflControllerAction->getMethod()
+            $crumbItem->reflControllerAction->getMethod(),
         ]);
 
         $this->crumbsTrail[] = new ProcessedCrumb(
             $crumbLabel,
-            $crumbUrl
+            $crumbUrl,
         );
 
         $this->addAuxCrumbToTrail($breadcrumbAttr->auxCrumbAfter, $controllerActionParams);
@@ -178,7 +162,7 @@ class Trail
         string $requestParamName,
         string $requestParamMethod,
         string $argsString,
-        array $controllerActionParams
+        array $controllerActionParams,
     ): string {
         $args = explode(',', $argsString);
         $breadcrumb['args'] = [];
@@ -216,7 +200,7 @@ class Trail
     protected function parseRequestParamPropertyLabel(
         string $requestParamName,
         string $requestParamProperty,
-        array $controllerActionParams
+        array $controllerActionParams,
     ): string {
 
         // check if there's such param for the action
@@ -295,7 +279,7 @@ class Trail
         }
 
         $this->crumbsTrail[] = new ProcessedCrumb(
-            $this->resolveLabel($auxCrumb, $controllerActionParams)
+            $this->resolveLabel($auxCrumb, $controllerActionParams),
         );
         // if ($auxCrumb instanceof CrumbResolver) {
         //     $this->crumbsTrail[] = $this->resolveCrumbResolver($auxCrumb, $controllerActionParams);
@@ -308,11 +292,11 @@ class Trail
 
     protected function resolveCrumbResolver(
         CrumbResolver $crumbResolver,
-        array $controllerActionParams
+        array $controllerActionParams,
     ): ProcessedCrumb {
         return new ProcessedCrumb(
             $crumbResolver->resolveLabel($controllerActionParams),
-            $crumbResolver->resolveUrl($controllerActionParams)
+            $crumbResolver->resolveUrl($controllerActionParams),
         );
     }
 }

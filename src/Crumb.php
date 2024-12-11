@@ -12,9 +12,8 @@ class Crumb
 {
     public function __construct(
         public readonly BreadcrumbAttribute $crumbData,
-        public readonly LazyReflectionMethodInterface $reflControllerAction
-    ) {
-    }
+        public readonly LazyReflectionMethodInterface $reflControllerAction,
+    ) {}
 
     public static function create(
         $controllerAction,
@@ -22,7 +21,7 @@ class Crumb
         string|\Stringable|null $parent = null,
         string|\Stringable|null $name = null,
         string|\Stringable|array|null $auxCrumbBefore = null,
-        string|\Stringable|array|null $auxCrumbAfter = null
+        string|\Stringable|array|null $auxCrumbAfter = null,
     ): static {
         $crumbAttribute = new BreadcrumbAttribute($label, $parent, $name, $auxCrumbBefore, $auxCrumbAfter);
         $lazyReflMethod = self::buildLazyReflectionMethod($controllerAction);
@@ -46,9 +45,6 @@ class Crumb
 
     private static function buildLazyReflectionMethod($controllerAction): LazyReflectionMethodInterface
     {
-        //$reflMethod = new \ReflectionMethod(...Arr::wrap($controllerAction));
-        //return LazyReflectionMethod::fromReflectionMethod($reflMethod);
-
         return new LazyReflectionMethod(...Arr::wrap($controllerAction));
     }
 }
