@@ -19,7 +19,7 @@
     ],
     "require": {
         "php": "^8.1",
-        "illuminate/contracts": "^10.0|^11.0"
+        "illuminate/contracts": "^10.0|^11.0|^12.0"
     },
     "suggest": {
         "spatie/laravel-route-attributes": "Allows route name binding (route name is used as the Breadcrumb name if you don't provide one)"
