@@ -35,6 +35,15 @@ class BreadcrumbsAttributeServiceProvider extends ServiceProvider
         /** @var CrumbBasket */
         $crumbBasket = $this->app->make(CrumbBasket::class);
         $crumbBasket->gatherCrumbsOntoBasket();
+
+        if (\method_exists($this, 'optimizes')) {
+            $this->optimizes(
+                optimize: 'erickcomp:laravel-breadcrumbs-attributes:cache',
+                clear: 'erickcomp:laravel-breadcrumbs-attributes:clear-cache',
+                key: 'breadcrumbs',
+            );
+        }
+
     }
 
     protected function publishConfigFileIfAsked()
@@ -70,7 +79,7 @@ class BreadcrumbsAttributeServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(
             __DIR__ . '/../config/erickcomp-laravel-breadcrumbs-attributes.php',
-            'erickcomp-laravel-breadcrumbs-attributes'
+            'erickcomp-laravel-breadcrumbs-attributes',
         );
     }
 
@@ -79,7 +88,7 @@ class BreadcrumbsAttributeServiceProvider extends ServiceProvider
         Application::macro('getCachedErickCompLaravelAttributesBreadcrumbsPath', function () {
             return $this->normalizeCachePath(
                 CrumbBasket::BREADCRUMBS_CACHE_FILE_KEY,
-                CrumbBasket::BREADCRUMBS_CACHE_FILE_DEFAULT
+                CrumbBasket::BREADCRUMBS_CACHE_FILE_DEFAULT,
             );
         });
     }
