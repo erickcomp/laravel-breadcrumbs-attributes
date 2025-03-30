@@ -74,8 +74,8 @@ class CrumbBasket
         string|\Stringable|array $label,
         string|\Stringable|null $parent = null,
         string|\Stringable|null $name = null,
-        string|\Stringable|array|null $auxCrumbBefore = null,
-        string|\Stringable|array|null $auxCrumbAfter = null,
+        string|\Stringable|array|null $before = null,
+        string|\Stringable|array|null $after = null,
     ) {
         //$route = $this->router->getRoutes()->getByName($routeName);   
 
@@ -87,8 +87,8 @@ class CrumbBasket
             $label,
             $parent,
             $name,
-            $auxCrumbBefore,
-            $auxCrumbAfter,
+            $before,
+            $after,
         );
 
         $this->addFromBreadcrumbAttributeInstanceAndLazyReflectionMethod(
@@ -108,15 +108,15 @@ class CrumbBasket
         string|\Stringable|array $label,
         string|\Stringable|null $name,
         string|\Stringable|null $parent = null,
-        string|\Stringable|array|null $auxCrumbBefore = null,
-        string|\Stringable|array|null $auxCrumbAfter = null,
+        string|\Stringable|array|null $before = null,
+        string|\Stringable|array|null $after = null,
     ) {
         $crumbAttrInstance = new Breadcrumb(
             $label,
             $parent,
             $name,
-            $auxCrumbBefore,
-            $auxCrumbAfter,
+            $before,
+            $after,
         );
 
         $controllerAction = static::normalizeControllerAction($controllerAction);

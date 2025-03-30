@@ -71,8 +71,8 @@ The Breadcrumb attribute can hold the following info:
 - label
 - parent
 - name
-- auxCrumbBefore (a crumb that will be inserted before the current crumb)
-- auxCrumbBefore (a crumb that will be inserted after the current crumb)
+- before (a crumb that will be inserted before the current crumb)
+- after (a crumb that will be inserted after the current crumb)
   
 You did not see the url of the crumb, right? It's because the URL of the crumb is evaluated based on the controller method the attribute is attached. If you create a Breadcrumb attribute and try to use it on a trail without referencing it into a route, an Exception will be thrown.
 
@@ -154,7 +154,7 @@ class MyController
     {
     }
 
-    #[Breadcrumb(label: ['Showing user: ', '"', '{user}->name','"'], parent: 'home.users-list', name: 'home.user-list')]
+    #[Breadcrumb(label: 'Showing user: "{user}->name"', parent: 'home.users-list', name: 'home.user-list')]
     public function showUser(UserModel $user)
     {
     }
@@ -188,8 +188,6 @@ array(6) {
   }
 
 ```
-
-Note that the label is an array with string. All the items of the array are concatenated to form the final crumb.
 
 ### The route parameter resolution
 The breadcrumbs links deal with the url params and generate the url's using them, so you (most probably) won't have to deal with url generation for your breadcrumbs.
@@ -228,37 +226,16 @@ class MyController
     {
     }
 
-    #[Breadcrumb(label: ['Showing user: ', '"', '{user}->name', '"'],
-        parent: 'home.users-list',
-        name: 'home.user-list',
-        auxCrumbBefore: 'Admin'
-    )]
+    #[Breadcrumb(before: 'Admin', label: 'Showing user: "{user}->name"',  parent: 'home.users-list', name: 'home.user-list')]
     public function showUser(UserModel $user)
     {
     }
 }
 ```
 
-And the "Admin" crumb will be added to the breadcrumbs trail.
-
-You can pass an array to the other Aux breadcrumbs param as well:
-
-```php
-
-#[Breadcrumb(
-    label: ['Showing user: ', '"', '{user}->name', '"'],
-    parent: 'home.users-list',
-    name: 'home.user-show',
-    auxCrumbBefore: ['A', 'd', 'm', 'i', 'n']
-)]
-public function showUser(UserModel $user)
-{
-}
-```
-
 ## Integration with other packages (Spatie's Laravel Route Attributes)
 
-As I said, this package was inspired by by Spatie's wonderful [Laravel Routes Attributes](https://github.com/spatie/laravel-route-attributes#use-php-8-attributes-to-register-routes-in-a-laravel-app). In fact, I have designed this package to work alongside Spatie's package, so it has some built-in integrations with it:
+As mentioned before, this package was inspired by by Spatie's wonderful [Laravel Routes Attributes](https://github.com/spatie/laravel-route-attributes#use-php-8-attributes-to-register-routes-in-a-laravel-app). In fact, I have designed this package to work alongside Spatie's package, so it has some built-in integrations with it:
 
 - If you're using custom directories for the controllers and you have defined them in the `route-attributes` config file, you don't have to redefine it again in the breadcrumbs config, because it tries to read the one from spatie's route attributes;
 - If you are naming your routes (and I advise you to do so!) you can omit the "name" argument of the Breadcrumb attribute, as the Breadcrumb is going to use the one defined in the route attribute.
@@ -285,7 +262,7 @@ class MyController
 
     
     #[Get('/users/show/{user}', name: 'home.users-list.user-show')]
-    #[Breadcrumb(label: ['Showing user: ', '"', '{user}->name', '"'], parent: 'home.users-list')]
+    #[Breadcrumb(label: 'Showing user: "{user}->name"', parent: 'home.users-list')]
     public function showUser(UserModel $user)
     {
     }
@@ -313,7 +290,7 @@ To define classes of list items, you can specify:
 This style of breadcrumbs component was made from the also awesome package [Tabuna Breadcrumbs](https://github.com/tabuna/breadcrumbs#introduction). Before coding this package, my intent was to use Tabuna breadcrumbs, but we cannot use closures on PHP attributes. But I got some concepts from there (and the component code) to build my own package as well.
 
 ## Caching
-This package works by checking the controller directories on every request and gather all the breadcrumbs information into our breadcrumb basket. Then, when requested by the programer (through the Trail class, the Breadcrumbs facade or the by using the erickcomp-breadcrumbs blade component), the breadcrumb trail is build based on the previously collected breadcrumbs. But in production mode, the breadcrumbs should not change, so we could entirely skip this gathering of breadcrumbs step. For that caching management, the package provides 2 artisan commands:
+This package works by checking the controller directories on every request and gather all the breadcrumbs information into our breadcrumb basket. Then, when requested by the programer (through the Trail class, the Breadcrumbs facade or the by using the erickcomp-breadcrumbs blade component), the breadcrumb trail is built based on the previously collected breadcrumbs. But in production mode, the breadcrumbs should not change, so we could entirely skip this gathering of breadcrumbs step. For that caching management, the package provides 2 artisan commands:
 
 ```bash
 erickcomp:laravel-breadcrumbs-attributes:cache
@@ -324,7 +301,7 @@ and
 erickcomp:laravel-breadcrumbs-attributes:clear-cache
 ```
 
-# Attributeless breadcrumbs
+# Defining breadcrumbs without using attributes
 If, for some reason you need declare breadcrumbs without using controller attributes, you can leverage the ```CrumbBasket``` facade.
 It has methods to "put" crumbs into basket. By default, you can define breadcrumbs this way on the file ``` routes/breadcrumbs.php``` .
 It can be changed by publishing the config file and changing the "breadcrumbs_files" entry. In this file, you can define breadcrumbs like:
@@ -348,6 +325,11 @@ You can manually create this ```routes/breadcrumbs.php``` file or you can use th
 ## Version 1
 
 The first version of this package used other attribute classes to access the route/controller parameters. It worked well, but was too verbose. Now, all the features provided by those classes were migrated to the new ```{routeParam}``` syntax, that's more aligned to the Laravel's syntax to express route parameters on the route declarations.
+
+## Version 2
+
+The version 2 of this package used "before" and "after" parameter names in the breadcrumb
+definition. After some time using it, it started to feel clunky and I decided to change it only to "before" and after. As this is a breaking change, the version was bumped to 3.
 
 ## Credits
 

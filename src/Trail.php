@@ -61,7 +61,7 @@ class Trail
 
         $breadcrumbAttr = $crumbItem->crumbData;
 
-        $this->addAuxCrumbToTrail($breadcrumbAttr->auxCrumbBefore, $controllerActionParams);
+        $this->addAuxCrumbToTrail($breadcrumbAttr->before, $controllerActionParams);
 
         $crumbLabel = $this->resolveLabel($breadcrumbAttr->label, $controllerActionParams);
 
@@ -75,7 +75,7 @@ class Trail
             $crumbUrl,
         );
 
-        $this->addAuxCrumbToTrail($breadcrumbAttr->auxCrumbAfter, $controllerActionParams);
+        $this->addAuxCrumbToTrail($breadcrumbAttr->after, $controllerActionParams);
     }
 
     /**

@@ -20,10 +20,10 @@ class Crumb
         string|\Stringable|array $label,
         string|\Stringable|null $parent = null,
         string|\Stringable|null $name = null,
-        string|\Stringable|array|null $auxCrumbBefore = null,
-        string|\Stringable|array|null $auxCrumbAfter = null,
+        string|\Stringable|array|null $before = null,
+        string|\Stringable|array|null $after = null,
     ): static {
-        $crumbAttribute = new BreadcrumbAttribute($label, $parent, $name, $auxCrumbBefore, $auxCrumbAfter);
+        $crumbAttribute = new BreadcrumbAttribute($label, $parent, $name, $before, $after);
         $lazyReflMethod = self::buildLazyReflectionMethod($controllerAction);
 
         return new static($crumbAttribute, $lazyReflMethod);
