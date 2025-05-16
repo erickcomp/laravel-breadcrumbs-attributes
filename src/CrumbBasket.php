@@ -18,6 +18,7 @@ use ReflectionClass;
 use ReflectionMethod;
 use SplFileInfo;
 use Symfony\Component\Finder\Finder;
+use Illuminate\Support\Facades\Log;
 
 class CrumbBasket
 {
@@ -223,6 +224,12 @@ class CrumbBasket
     protected function gatherCrumbsOfFile(SplFileInfo $file): void
     {
         $fullyQualifiedClassName = $this->fullQualifiedClassNameFromFile($file);
+
+        if ($fullyQualifiedClassName === null) {
+            Log::debug("Could not process breadcrumbs attributes of file: [{$file->getPathname()}]");
+
+            return;
+        }
 
         $this->processAttributes($fullyQualifiedClassName);
     }
@@ -481,5 +488,4 @@ class CrumbBasket
 
         return \str_replace('::', '@', $controllerAction);
     }
-
 }
