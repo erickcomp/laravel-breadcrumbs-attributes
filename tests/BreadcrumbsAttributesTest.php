@@ -8,6 +8,7 @@ use ErickComp\BreadcrumbAttributes\Facades\BreadcrumbsTrail;
 use ErickComp\BreadcrumbAttributes\Providers\BreadcrumbsAttributeServiceProvider;
 use ErickComp\BreadcrumbAttributes\Tests\TestClasses\Controllers\ControllerWithoutSpatieRoutes;
 use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 
@@ -15,7 +16,7 @@ class BreadcrumbsAttributesTest extends TestCase
 {
     private const CONFIG_FILE = 'erickcomp-laravel-breadcrumbs-attributes.php';
     private const APPLICATION_MACROS = [
-        'getCachedErickCompLaravelAttributesBreadcrumbsPath'
+        'getCachedErickCompLaravelAttributesBreadcrumbsPath',
     ];
 
     public function setUp(): void
@@ -42,8 +43,8 @@ class BreadcrumbsAttributesTest extends TestCase
         $response->assertExactJson([
             [
                 'label' => 'Home',
-                'url' => URL::to('/')
-            ]
+                'url' => URL::to('/'),
+            ],
         ]);
     }
 
@@ -61,12 +62,12 @@ class BreadcrumbsAttributesTest extends TestCase
         $response->assertExactJson([
             [
                 'label' => 'Home',
-                'url' => URL::to('/')
+                'url' => URL::to('/'),
             ],
             [
                 'label' => 'Simple',
-                'url' => URL::to('simple')
-            ]
+                'url' => URL::to('simple'),
+            ],
         ]);
     }
 
@@ -84,12 +85,12 @@ class BreadcrumbsAttributesTest extends TestCase
         $response->assertExactJson([
             [
                 'label' => 'Home',
-                'url' => URL::to('/')
+                'url' => URL::to('/'),
             ],
             [
                 'label' => 'Param1PassedInRouteSegment',
-                'url' => URL::to('action-param/Param1PassedInRouteSegment')
-            ]
+                'url' => URL::to('action-param/Param1PassedInRouteSegment'),
+            ],
         ]);
     }
 
@@ -107,12 +108,12 @@ class BreadcrumbsAttributesTest extends TestCase
         $response->assertExactJson([
             [
                 'label' => 'Home',
-                'url' => URL::to('/')
+                'url' => URL::to('/'),
             ],
             [
                 'label' => URL::to('action-param-method'),
-                'url' => URL::to('action-param-method')
-            ]
+                'url' => URL::to('action-param-method'),
+            ],
         ]);
     }
 
@@ -130,12 +131,12 @@ class BreadcrumbsAttributesTest extends TestCase
         $response->assertExactJson([
             [
                 'label' => 'Home',
-                'url' => URL::to('/')
+                'url' => URL::to('/'),
             ],
             [
                 'label' => 'action-param-property',
-                'url' => URL::to('action-param-property')
-            ]
+                'url' => URL::to('action-param-property'),
+            ],
         ]);
     }
 
@@ -153,12 +154,12 @@ class BreadcrumbsAttributesTest extends TestCase
         $response->assertExactJson([
             [
                 'label' => 'Home',
-                'url' => URL::to('/')
+                'url' => URL::to('/'),
             ],
             [
                 'label' => 'Concat part 1|Concat part 2|Concat part 3',
-                'url' => URL::to('concat-label')
-            ]
+                'url' => URL::to('concat-label'),
+            ],
         ]);
     }
 
@@ -185,6 +186,19 @@ class BreadcrumbsAttributesTest extends TestCase
         $response->assertContent($expectedHtml);
     }
 
+    /** @test */
+    public function it_can_render_the_component_when_the_trail_is_empty()
+    {
+        $trail = app(\ErickComp\BreadcrumbAttributes\Trail::class);
+        $crumbsTrailProperty = new \ReflectionProperty($trail, 'crumbsTrail');
+        $crumbsTrailProperty->setAccessible(true);
+        $crumbsTrailProperty->setValue($trail, []);
+
+        $renderedHtml = Blade::render('<x-erickcomp-breadcrumbs />');
+
+        $this->assertSame('', trim($renderedHtml));
+    }
+
     protected function getPackageProviders($app)
     {
         return [
@@ -204,7 +218,7 @@ class BreadcrumbsAttributesTest extends TestCase
             'action-param-property' => 'aActionParamProperty',
             'concat-label' => 'aConcatLabel',
             'eval-crumb/{param1}/{fake_model?}' => 'aEvalCrumb',
-            'action-param/{param1}/render-component' => 'aReturnComponent'
+            'action-param/{param1}/render-component' => 'aReturnComponent',
         ];
 
         foreach ($routesStrs as $route => $method) {
@@ -236,7 +250,7 @@ class BreadcrumbsAttributesTest extends TestCase
 
         $crumbBasket = new CrumbBasket(
             $this->app,
-            $this->app->make(\Illuminate\Filesystem\Filesystem::class)
+            $this->app->make(\Illuminate\Filesystem\Filesystem::class),
         );
 
         /** @var Closure $setter */

@@ -4,6 +4,7 @@ namespace ErickComp\BreadcrumbAttributes;
 
 use ErickComp\BreadcrumbAttributes\Attributes\Resolvers\CrumbResolver;
 use ErickComp\BreadcrumbAttributes\Util\ControllerActionRoutesAndParamsResolver;
+use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 
 class Trail
@@ -35,8 +36,14 @@ class Trail
     protected function build()
     {
         $this->crumbsTrail = [];
+        $currentRoute = $this->router->getCurrentRoute();
+
+        if (!$currentRoute instanceof Route) {
+            return;
+        }
+
         /** @var Crumb[] */
-        $crumbsAttrs = $this->crumbBasket->getCrumbsAttributesTrailForRoute($this->router->getCurrentRoute());
+        $crumbsAttrs = $this->crumbBasket->getCrumbsAttributesTrailForRoute($currentRoute);
 
         foreach ($crumbsAttrs as $crumbAttr) {
             $this->addCrumbToTrail($crumbAttr);
