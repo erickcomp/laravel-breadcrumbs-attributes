@@ -12,6 +12,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Application;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use ReflectionAttribute;
 use ReflectionClass;
@@ -226,7 +227,9 @@ class CrumbBasket
         $fullyQualifiedClassName = $this->fullQualifiedClassNameFromFile($file);
 
         if ($fullyQualifiedClassName === null) {
-            Log::debug("Could not process breadcrumbs attributes of file: [{$file->getPathname()}]");
+            if (App::runningInConsole()) {
+                Log::debug("Could not process breadcrumbs attributes of file: [{$file->getPathname()}]");
+            }
 
             return;
         }

@@ -9,6 +9,7 @@ use ErickComp\BreadcrumbAttributes\Providers\BreadcrumbsAttributeServiceProvider
 use ErickComp\BreadcrumbAttributes\Tests\TestClasses\Controllers\ControllerWithoutSpatieRoutes;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 
@@ -199,6 +200,24 @@ class BreadcrumbsAttributesTest extends TestCase
         $this->assertSame('', trim($renderedHtml));
     }
 
+    /** @test */
+    public function it_does_not_log_unprocessable_files_when_not_running_in_console()
+    {
+        Log::shouldReceive('debug')->never();
+
+        $this->gatherCrumbsFromUnprocessableControllersDir(runningInConsole: false);
+    }
+
+    /** @test */
+    public function it_logs_unprocessable_files_when_running_in_console()
+    {
+        Log::shouldReceive('debug')
+            ->once()
+            ->with(\Mockery::pattern('/Could not process breadcrumbs attributes of file/'));
+
+        $this->gatherCrumbsFromUnprocessableControllersDir(runningInConsole: true);
+    }
+
     protected function getPackageProviders($app)
     {
         return [
@@ -268,6 +287,34 @@ class BreadcrumbsAttributesTest extends TestCase
         $this->app->singleton(CrumbBasket::class, function () use ($crumbBasket) {
             return $crumbBasket;
         });
+    }
+
+    protected function gatherCrumbsFromUnprocessableControllersDir(bool $runningInConsole): void
+    {
+        $controllersDir = __DIR__ . DIRECTORY_SEPARATOR
+            . 'TestClasses' . DIRECTORY_SEPARATOR
+            . 'UnprocessableControllers';
+
+        $crumbBasket = new CrumbBasket(
+            $this->app,
+            $this->app->make(\Illuminate\Filesystem\Filesystem::class),
+        );
+
+        $isRunningInConsoleProperty = new \ReflectionProperty($this->app, 'isRunningInConsole');
+        $isRunningInConsoleProperty->setAccessible(true);
+        $originalValue = $isRunningInConsoleProperty->getValue($this->app);
+        $isRunningInConsoleProperty->setValue($this->app, $runningInConsole);
+
+        /** @var Closure $crumbBasketCaller */
+        $crumbBasketCaller = function ($method, ...$args) {
+            $this->$method(...$args);
+        };
+
+        try {
+            $crumbBasketCaller->call($crumbBasket, 'gatherCrumbsFromDirectories', [$controllersDir]);
+        } finally {
+            $isRunningInConsoleProperty->setValue($this->app, $originalValue);
+        }
     }
 
     /**
