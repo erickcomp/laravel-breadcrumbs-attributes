@@ -1,5 +1,5 @@
 <?php
-use Erickcomp\BreadcrumbAttributes\Facades\CrumbBasket;
+use ErickComp\BreadcrumbAttributes\Facades\CrumbBasket;
 
 /**
  * Use the "putCrumbFor*" methods from the CrumbBasket Facade to add breadcrumbs
